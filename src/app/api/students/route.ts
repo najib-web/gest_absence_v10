@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
   }
   try {
     const body = await req.json();
-    const { codeMassar, firstName, lastName, classeId, groupId } = body;
+    const { codeMassar, firstName, lastName, classeId, groupId, firstNameAr, lastNameAr, parentPhone } = body;
     if (!codeMassar || !firstName || !lastName || !classeId) {
       return NextResponse.json({ error: "Champs manquants" }, { status: 400 });
     }
@@ -65,6 +65,9 @@ export async function POST(req: NextRequest) {
         lastName,
         classeId,
         groupId: groupId || null,
+        firstNameAr: firstNameAr || null,
+        lastNameAr: lastNameAr || null,
+        parentPhone: parentPhone || null,
       },
     });
     return NextResponse.json({ student });

@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Loader2, BookOpen, UserPlus, CalendarClock, Layers, Upload, Download, FileSpreadsheet, CheckCircle2, XCircle, KeyRound } from "lucide-react";
+import { Plus, Trash2, Loader2, BookOpen, UserPlus, CalendarClock, Layers, Upload, Download, FileSpreadsheet, CheckCircle2, XCircle, KeyRound, Phone } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -40,6 +40,10 @@ interface TeacherPreviewRow {
   firstName: string;
   lastName: string;
   matiere: string;
+  ppr?: string;
+  firstNameAr?: string;
+  lastNameAr?: string;
+  phone?: string;
   matiereAr: string | null;
   emailInput: string;
   email: string;
@@ -217,31 +221,49 @@ export function AdminTeachers() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>{t.ppr}</TableHead>
                   <TableHead>{t.fullName}</TableHead>
+                  <TableHead dir="rtl" className="font-arabic">{t.lastNameAr}</TableHead>
+                  <TableHead dir="rtl" className="font-arabic">{t.firstNameAr}</TableHead>
+                  <TableHead>{t.phone}</TableHead>
                   <TableHead>{t.email}</TableHead>
                   <TableHead>{t.subject}</TableHead>
                   <TableHead className="text-center">{t.serviceTables}</TableHead>
                   <TableHead className="text-center">{t.sessions}</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8">
+                    <TableCell colSpan={10} className="text-center py-8">
                       <Loader2 className="h-5 w-5 mx-auto animate-spin text-muted-foreground" />
                     </TableCell>
                   </TableRow>
                 ) : teachers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                       {t.noData}
                     </TableCell>
                   </TableRow>
                 ) : (
                   teachers.map((tc) => (
                     <TableRow key={tc.id}>
+                      <TableCell className="font-mono text-xs">{tc.ppr || "—"}</TableCell>
                       <TableCell className="font-medium">
                         {tc.lastName} {tc.firstName}
+                      </TableCell>
+                      <TableCell dir="rtl" className="font-arabic">{tc.lastNameAr || "—"}</TableCell>
+                      <TableCell dir="rtl" className="font-arabic">{tc.firstNameAr || "—"}</TableCell>
+                      <TableCell className="font-mono text-xs">
+                        {tc.phone ? (
+                          <a href={`tel:${tc.phone}`} className="inline-flex items-center gap-1 text-emerald-600 hover:underline" title={t.callParent}>
+                            <Phone className="h-3 w-3" />
+                            {tc.phone}
+                          </a>
+                        ) : (
+                          "—"
+                        )}
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">{tc.user.email}</TableCell>
                       <TableCell>
@@ -414,6 +436,10 @@ export function AdminTeachers() {
                   <TableHead className="w-12">{t.status}</TableHead>
                   <TableHead>{t.lastName}</TableHead>
                   <TableHead>{t.firstName}</TableHead>
+                  <TableHead>{t.lastNameAr}</TableHead>
+                  <TableHead>{t.firstNameAr}</TableHead>
+                  <TableHead>{t.ppr}</TableHead>
+                  <TableHead>{t.phone}</TableHead>
                   <TableHead>{t.subject}</TableHead>
                   <TableHead>{t.email}</TableHead>
                 </TableRow>
@@ -430,6 +456,10 @@ export function AdminTeachers() {
                     </TableCell>
                     <TableCell className="font-medium">{r.lastName}</TableCell>
                     <TableCell>{r.firstName}</TableCell>
+                    <TableCell dir="rtl" className="font-arabic">{r.lastNameAr || "—"}</TableCell>
+                    <TableCell dir="rtl" className="font-arabic">{r.firstNameAr || "—"}</TableCell>
+                    <TableCell className="font-mono text-xs">{r.ppr || "—"}</TableCell>
+                    <TableCell className="font-mono text-xs">{r.phone || "—"}</TableCell>
                     <TableCell>
                       {r.matiere ? (
                         <Badge variant="secondary">{r.matiere}</Badge>
@@ -467,6 +497,10 @@ function TeacherDialog({ open, onOpenChange, onSaved, subjects }: { open: boolea
   const { t } = useI18n();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [firstNameAr, setFirstNameAr] = useState("");
+  const [lastNameAr, setLastNameAr] = useState("");
+  const [ppr, setPpr] = useState("");
+  const [phone, setPhone] = useState("");
   const [matiere, setMatiere] = useState("");
   const [matiereAr, setMatiereAr] = useState("");
   const [email, setEmail] = useState("");
@@ -485,9 +519,14 @@ function TeacherDialog({ open, onOpenChange, onSaved, subjects }: { open: boolea
         matiereAr: subj?.ar || matiereAr,
         email,
         password,
+        ppr: ppr || undefined,
+        firstNameAr: firstNameAr || undefined,
+        lastNameAr: lastNameAr || undefined,
+        phone: phone || undefined,
       });
       toast.success(t.created);
-      setFirstName(""); setLastName(""); setMatiere(""); setMatiereAr(""); setEmail(""); setPassword("");
+      setFirstName(""); setLastName(""); setFirstNameAr(""); setLastNameAr(""); setPpr(""); setPhone("");
+      setMatiere(""); setMatiereAr(""); setEmail(""); setPassword("");
       onOpenChange(false);
       onSaved();
     } catch (e) {
@@ -516,6 +555,26 @@ function TeacherDialog({ open, onOpenChange, onSaved, subjects }: { open: boolea
             <div className="space-y-2">
               <Label htmlFor="tln">{t.lastName}</Label>
               <Input id="tln" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="tfnar">{t.firstNameAr}</Label>
+              <Input id="tfnar" dir="rtl" className="font-arabic" value={firstNameAr} onChange={(e) => setFirstNameAr(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tlnar">{t.lastNameAr}</Label>
+              <Input id="tlnar" dir="rtl" className="font-arabic" value={lastNameAr} onChange={(e) => setLastNameAr(e.target.value)} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="tppr">{t.ppr}</Label>
+              <Input id="tppr" value={ppr} onChange={(e) => setPpr(e.target.value)} placeholder="123456" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tphone">{t.phone}</Label>
+              <Input id="tphone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="06 12 34 56 78" />
             </div>
           </div>
           <div className="space-y-2">

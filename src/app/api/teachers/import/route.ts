@@ -59,6 +59,10 @@ export async function POST(req: NextRequest) {
       firstName: string;
       lastName: string;
       matiere: string;
+      ppr?: string;
+      firstNameAr?: string;
+      lastNameAr?: string;
+      phone?: string;
       matiereAr: string | null;
       emailInput: string;
       email: string;
@@ -89,6 +93,10 @@ export async function POST(req: NextRequest) {
         firstName: r.firstName,
         lastName: r.lastName,
         matiere: r.matiere,
+        ppr: r.ppr,
+        firstNameAr: r.firstNameAr,
+        lastNameAr: r.lastNameAr,
+        phone: r.phone,
         matiereAr: subjectArFromFr(r.matiere),
         emailInput: r.email || "",
         email: baseEmail,
@@ -138,6 +146,10 @@ export async function POST(req: NextRequest) {
                 lastName: r.lastName || existingUser.teacher.lastName,
                 matiere: r.matiere,
                 matiereAr: r.matiereAr,
+                ...(r.ppr ? { ppr: r.ppr } : {}),
+                ...(r.firstNameAr ? { firstNameAr: r.firstNameAr } : {}),
+                ...(r.lastNameAr ? { lastNameAr: r.lastNameAr } : {}),
+                ...(r.phone ? { phone: r.phone } : {}),
               },
             });
             updated++;
@@ -149,6 +161,10 @@ export async function POST(req: NextRequest) {
                 lastName: r.lastName || existingUser.name.split(" ").slice(1).join(" ") || "—",
                 matiere: r.matiere,
                 matiereAr: r.matiereAr,
+                ppr: r.ppr || null,
+                firstNameAr: r.firstNameAr || null,
+                lastNameAr: r.lastNameAr || null,
+                phone: r.phone || null,
               },
             });
             updated++;
@@ -175,6 +191,10 @@ export async function POST(req: NextRequest) {
               lastName: r.lastName,
               matiere: r.matiere,
               matiereAr: r.matiereAr,
+              ppr: r.ppr || null,
+              firstNameAr: r.firstNameAr || null,
+              lastNameAr: r.lastNameAr || null,
+              phone: r.phone || null,
             },
           });
           created++;

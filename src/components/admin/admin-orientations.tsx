@@ -51,6 +51,7 @@ import {
   Send,
   Trash2,
   Users,
+  Phone,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -59,6 +60,9 @@ interface StudentCount {
   codeMassar: string;
   firstName: string;
   lastName: string;
+  firstNameAr?: string | null;
+  lastNameAr?: string | null;
+  parentPhone?: string | null;
   classe: { id: string; code: string };
   groupe: { id: string; code: string } | null;
   totalAbsences: number;
@@ -313,19 +317,20 @@ export function AdminOrientations() {
                       <TableHead>{t.classe}</TableHead>
                       <TableHead>{t.unjustifiedAbsencesCount}</TableHead>
                       <TableHead className="w-40">{t.thresholdProgress}</TableHead>
+                      <TableHead>{t.parentPhone}</TableHead>
                       <TableHead className="text-end">{t.actions}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {loadingCounts ? (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8">
+                        <TableCell colSpan={7} className="text-center py-8">
                           <Loader2 className="h-5 w-5 mx-auto animate-spin text-muted-foreground" />
                         </TableCell>
                       </TableRow>
                     ) : filteredStudents.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                           <CheckCircle2 className="h-8 w-8 mx-auto mb-2 opacity-50" />
                           {t.noStudentExceeds}
                         </TableCell>
@@ -335,6 +340,11 @@ export function AdminOrientations() {
                         <TableRow key={s.id} className={s.exceeded ? "bg-red-50/50 dark:bg-red-950/10" : ""}>
                           <TableCell className="font-medium">
                             {s.lastName} {s.firstName}
+                            {(s.lastNameAr || s.firstNameAr) && (
+                              <span dir="rtl" className="block font-arabic text-xs text-muted-foreground">
+                                {[s.lastNameAr, s.firstNameAr].filter(Boolean).join(" ")}
+                              </span>
+                            )}
                           </TableCell>
                           <TableCell className="font-mono text-xs">{s.codeMassar}</TableCell>
                           <TableCell>
@@ -356,6 +366,20 @@ export function AdminOrientations() {
                                 {s.unjustifiedAbsences}/{threshold}
                               </span>
                             </div>
+                          </TableCell>
+                          <TableCell>
+                            {s.parentPhone ? (
+                              <a
+                                href={`tel:${s.parentPhone}`}
+                                title={t.callParent}
+                                className="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 font-mono text-xs text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-400"
+                              >
+                                <Phone className="h-3.5 w-3.5" />
+                                {s.parentPhone}
+                              </a>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">{t.phoneMissing}</span>
+                            )}
                           </TableCell>
                           <TableCell className="text-end">
                             {s.exceeded || s.atLimit ? (

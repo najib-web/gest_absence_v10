@@ -4,6 +4,7 @@
 // Add / remove sessions for each teacher directly on the grid.
 
 import { useMemo, useRef, useState } from "react";
+import * as XLSX from "xlsx";
 import { useI18n } from "@/lib/i18n-context";
 import { useFetch, apiPost, apiDelete } from "@/lib/hooks";
 import { SUBJECTS } from "@/lib/subjects";
@@ -27,8 +28,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2, Plus, CalendarDays, FilterX, Upload, Download, FileSpreadsheet, CheckCircle2, XCircle } from "lucide-react";
+import { Loader2, Plus, CalendarDays, FilterX, Upload, Download, FileSpreadsheet, CheckCircle2, XCircle, FileDown, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -85,7 +92,7 @@ interface ImportSummary {
 }
 
 export function AdminSchedule() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { data: slotsData, loading, refresh } = useFetch<{ slots: SlotApi[] }>("/api/service-slots");
   const { data: teachersData } = useFetch<{ teachers: any[] }>("/api/teachers");
   const { data: classesData } = useFetch<{ classes: any[] }>("/api/classes");
@@ -164,6 +171,7 @@ export function AdminSchedule() {
       toast.success(
         `${data.created} ${t.slotsImported}` +
         (data.updated ? `, ${data.updated} ${t.slotsUpdated}` : "") +
+        (data.serviceTablesUpdated ? `, ${data.serviceTablesUpdated} ${t.serviceTablesSynced}` : "") +
         (data.skipped ? `, ${data.skipped} ${t.rowsSkipped.toLowerCase()}` : "")
       );
       setImportOpen(false);
@@ -181,6 +189,61 @@ export function AdminSchedule() {
     a.href = "/templates/tableaux%20de%20services.csv";
     a.download = "tableaux de services.csv";
     a.click();
+  }
+
+  // Export de la grille au même format que le tableau d'import (et que l'aperçu UI) :
+  // Jour | Heure début | Heure fin | Classe | Groupe | Enseignant | Matière
+  function buildExportRows() {
+    const isAr = locale === "ar";
+    const headers = isAr
+      ? ["اليوم", "وقت البداية", "وقت النهاية", "القسم", "المجموعة", "الأستاذ", "المادة"]
+      : ["Jour", "Heure début", "Heure fin", "Classe", "Groupe", "Enseignant", "Matière"];
+    const sorted = [...allSlots].sort(
+      (a, b) => a.dayOfWeek - b.dayOfWeek || a.startMin - b.startMin
+    );
+    const body = sorted.map((s) => [
+      DAY_NAMES[s.dayOfWeek - 1]?.[isAr ? "ar" : "fr"] ?? String(s.dayOfWeek),
+      minutesToLabel(s.startMin),
+      minutesToLabel(s.endMin),
+      s.classe.code,
+      s.groupe?.code ?? "",
+      `${s.teacher.lastName} ${s.teacher.firstName}`,
+      (isAr && s.subjectAr) || s.subject,
+    ]);
+    return { headers, body };
+  }
+
+  function exportScheduleXlsx() {
+    if (allSlots.length === 0) {
+      toast.error(t.noSlotsToExport);
+      return;
+    }
+    const { headers, body } = buildExportRows();
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...body]);
+    ws["!cols"] = [12, 13, 13, 12, 11, 26, 20].map((wch) => ({ wch }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, locale === "ar" ? "الجدول" : "Grille");
+    const fname = `grille_horaire_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    XLSX.writeFile(wb, fname);
+    toast.success(`${t.exportOk} — ${fname}`);
+  }
+
+  function exportScheduleCsv() {
+    if (allSlots.length === 0) {
+      toast.error(t.noSlotsToExport);
+      return;
+    }
+    const { headers, body } = buildExportRows();
+    const csv =
+      "\uFEFF" +
+      [headers, ...body].map((row) => row.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(";")).join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `grille_horaire_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast.success(t.exportOk);
   }
 
   async function deleteSlot(slot: SlotWithPeople) {
@@ -223,6 +286,25 @@ export function AdminSchedule() {
               <FilterX className="h-4 w-4" />
             </Button>
           )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" disabled={uploading}>
+                <FileDown className="h-4 w-4 me-2" />
+                {t.exportSchedule}
+                <ChevronDown className="h-3.5 w-3.5 ms-1" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={exportScheduleXlsx}>
+                <FileSpreadsheet className="h-4 w-4 me-2 text-emerald-600" />
+                {t.exportXlsx}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={exportScheduleCsv}>
+                <FileDown className="h-4 w-4 me-2 text-muted-foreground" />
+                {t.exportCsv}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button variant="outline" size="sm" onClick={downloadTemplate}>
             <Download className="h-4 w-4 me-2" />
             {t.templateServices}

@@ -186,12 +186,18 @@ export async function POST(req: NextRequest) {
             firstName: r.firstName,
             lastName: r.lastName,
             classeId: classeId,
+            ...(r.firstNameAr ? { firstNameAr: r.firstNameAr } : {}),
+            ...(r.lastNameAr ? { lastNameAr: r.lastNameAr } : {}),
+            ...(r.parentPhone ? { parentPhone: r.parentPhone } : {}),
           },
           create: {
             codeMassar: r.codeMassar.toUpperCase(),
             firstName: r.firstName,
             lastName: r.lastName,
             classeId: classeId,
+            firstNameAr: r.firstNameAr || null,
+            lastNameAr: r.lastNameAr || null,
+            parentPhone: r.parentPhone || null,
           },
         });
         inserted++;

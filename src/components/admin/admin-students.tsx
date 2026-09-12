@@ -34,6 +34,7 @@ import {
   Loader2,
   Users,
   Plus,
+  Phone,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -49,6 +50,9 @@ interface PreviewRow {
   codeMassar: string;
   firstName: string;
   lastName: string;
+  firstNameAr?: string;
+  lastNameAr?: string;
+  parentPhone?: string;
   classeCode: string;
   classeId: string | null;
   classeLabel: string;
@@ -90,6 +94,8 @@ export function AdminStudents() {
       return (
         s.firstName.toLowerCase().includes(q) ||
         s.lastName.toLowerCase().includes(q) ||
+        (s.firstNameAr || "").includes(q) ||
+        (s.lastNameAr || "").includes(q) ||
         s.codeMassar.toLowerCase().includes(q)
       );
     }
@@ -248,6 +254,9 @@ export function AdminStudents() {
                   <TableHead>{t.codeMassar}</TableHead>
                   <TableHead>{t.lastName}</TableHead>
                   <TableHead>{t.firstName}</TableHead>
+                  <TableHead dir="rtl" className="font-arabic">{t.lastNameAr}</TableHead>
+                  <TableHead dir="rtl" className="font-arabic">{t.firstNameAr}</TableHead>
+                  <TableHead>{t.parentPhone}</TableHead>
                   <TableHead>{t.classe}</TableHead>
                   <TableHead>{t.groupe}</TableHead>
                   <TableHead className="text-center">{t.absences}</TableHead>
@@ -257,13 +266,13 @@ export function AdminStudents() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                       <Loader2 className="h-5 w-5 mx-auto animate-spin" />
                     </TableCell>
                   </TableRow>
                 ) : filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                       {t.noData}
                     </TableCell>
                   </TableRow>
@@ -273,6 +282,22 @@ export function AdminStudents() {
                       <TableCell className="font-mono text-xs">{s.codeMassar}</TableCell>
                       <TableCell className="font-medium">{s.lastName}</TableCell>
                       <TableCell>{s.firstName}</TableCell>
+                      <TableCell dir="rtl" className="font-arabic">{s.lastNameAr || "—"}</TableCell>
+                      <TableCell dir="rtl" className="font-arabic">{s.firstNameAr || "—"}</TableCell>
+                      <TableCell>
+                        {s.parentPhone ? (
+                          <a
+                            href={`tel:${s.parentPhone}`}
+                            title={t.callParent}
+                            className="inline-flex items-center gap-1.5 text-emerald-600 hover:underline font-mono text-xs"
+                          >
+                            <Phone className="h-3.5 w-3.5" />
+                            {s.parentPhone}
+                          </a>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
                       <TableCell>
                         <Badge variant="outline">{s.classe?.code}</Badge>
                       </TableCell>
@@ -358,6 +383,9 @@ export function AdminStudents() {
                   <TableHead>{t.codeMassar}</TableHead>
                   <TableHead>{t.lastName}</TableHead>
                   <TableHead>{t.firstName}</TableHead>
+                  <TableHead dir="rtl" className="font-arabic">{t.lastNameAr}</TableHead>
+                  <TableHead dir="rtl" className="font-arabic">{t.firstNameAr}</TableHead>
+                  <TableHead>{t.parentPhone}</TableHead>
                   <TableHead>{t.classe}</TableHead>
                   <TableHead>{t.niveau}</TableHead>
                 </TableRow>
@@ -375,6 +403,9 @@ export function AdminStudents() {
                     <TableCell className="font-mono text-xs">{r.codeMassar}</TableCell>
                     <TableCell className="font-medium">{r.lastName}</TableCell>
                     <TableCell>{r.firstName}</TableCell>
+                    <TableCell dir="rtl" className="font-arabic">{r.lastNameAr || "—"}</TableCell>
+                    <TableCell dir="rtl" className="font-arabic">{r.firstNameAr || "—"}</TableCell>
+                    <TableCell className="font-mono text-xs">{r.parentPhone || "—"}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1.5">
                         <Badge variant="outline">{r.classeLabel}</Badge>
@@ -427,6 +458,9 @@ function AddStudentDialog({
   const [codeMassar, setCodeMassar] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [firstNameAr, setFirstNameAr] = useState("");
+  const [lastNameAr, setLastNameAr] = useState("");
+  const [parentPhone, setParentPhone] = useState("");
   const [classeId, setClasseId] = useState("");
   const [groupId, setGroupId] = useState("");
   const [saving, setSaving] = useState(false);
@@ -444,11 +478,17 @@ function AddStudentDialog({
         lastName,
         classeId,
         groupId: groupId || null,
+        firstNameAr: firstNameAr || undefined,
+        lastNameAr: lastNameAr || undefined,
+        parentPhone: parentPhone || undefined,
       });
       toast.success(t.created);
       setCodeMassar("");
       setFirstName("");
       setLastName("");
+      setFirstNameAr("");
+      setLastNameAr("");
+      setParentPhone("");
       setClasseId("");
       setGroupId("");
       onOpenChange(false);
@@ -490,6 +530,20 @@ function AddStudentDialog({
               <Label htmlFor="ln">{t.lastName}</Label>
               <Input id="ln" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
             </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="fnar">{t.firstNameAr}</Label>
+              <Input id="fnar" dir="rtl" className="font-arabic" value={firstNameAr} onChange={(e) => setFirstNameAr(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lnar">{t.lastNameAr}</Label>
+              <Input id="lnar" dir="rtl" className="font-arabic" value={lastNameAr} onChange={(e) => setLastNameAr(e.target.value)} />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="pp">{t.parentPhone} ({t.optional})</Label>
+            <Input id="pp" type="tel" value={parentPhone} onChange={(e) => setParentPhone(e.target.value)} placeholder="06 12 34 56 78" />
           </div>
           <div className="space-y-2">
             <Label>{t.classe}</Label>

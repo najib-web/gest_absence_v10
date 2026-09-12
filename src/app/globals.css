@@ -149,7 +149,7 @@ html[dir="rtl"] .lucide {
   transform: scaleX(1);
 }
 
-/* ===== Print (PDF export of reports) ===== */
+/* ===== Print (PDF export of reports) — A4 exact ===== */
 @media print {
   body * {
     visibility: hidden !important;
@@ -163,16 +163,19 @@ html[dir="rtl"] .lucide {
     top: 0 !important;
     left: 0 !important;
     right: 0 !important;
-    width: 100% !important;
+    width: 210mm !important; /* A4 portrait : 210 × 297 mm */
+    min-height: 297mm !important;
     max-height: none !important;
     overflow: visible !important;
     box-shadow: none !important;
     border: none !important;
+    border-radius: 0 !important;
   }
   .no-print {
     display: none !important;
   }
   @page {
-    margin: 14mm;
+    size: A4 portrait;
+    margin: 0; /* les marges sont gérées par le padding du document (16mm/15mm) */
   }
 }

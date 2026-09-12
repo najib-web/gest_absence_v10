@@ -4,6 +4,9 @@ export interface ParsedStudentRow {
   codeMassar: string;
   firstName: string;
   lastName: string;
+  firstNameAr?: string;
+  lastNameAr?: string;
+  parentPhone?: string;
   classeCode: string;
   niveauCode?: string;
 }
@@ -12,14 +15,17 @@ export interface ParsedStudentRow {
 // Shared helpers
 // ============
 
-/** Lowercase, trim, collapse spaces, remove latin accents (Arabic unchanged). */
+/** Lowercase, trim, collapse spaces, remove latin accents (Arabic unchanged).
+ * Note : NFD décompose aussi les lettres arabes avec hamza (أ → ا + U+0654).
+ * On retire donc également les signes diacritiques arabes (harakat + marques
+ * de hamza U+064B-U+0655, U+0670) pour que « الأربعاء » matche « الاربعاء ». */
 export function deaccent(s: string): string {
   return String(s || "")
     .toLowerCase()
     .trim()
     .replace(/\s+/g, " ")
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
+    .replace(/[\u0300-\u036f\u064b-\u0655\u0670\u0640]/g, "");
 }
 
 interface ColSpec {
@@ -146,6 +152,10 @@ export interface ParsedTeacherRow {
   firstName: string;
   lastName: string;
   matiere: string;
+  ppr?: string;
+  firstNameAr?: string;
+  lastNameAr?: string;
+  phone?: string;
   email?: string;
   password?: string;
 }
@@ -153,11 +163,15 @@ export interface ParsedTeacherRow {
 /**
  * Parse an Excel/CSV file containing the teachers list.
  * Expected columns (any order, FR or AR):
- *  - Nom / النسب          (required)
- *  - Prénom / الاسم       (required)
- *  - Matière / المادة     (required)
- *  - Email / البريد       (optional — auto-generated if missing)
- *  - Mot de passe / كلمة المرور (optional — default applied if missing)
+ *  - PPR / Matricule                     (optional)
+ *  - Nom / النسب                         (required)
+ *  - Prénom / الاسم                      (required)
+ *  - Nom (arabe) / النسب بالعربية        (optional)
+ *  - Prénom (arabe) / الاسم بالعربية     (optional)
+ *  - Téléphone / الهاتف                  (optional)
+ *  - Matière / المادة                    (required)
+ *  - Email / البريد                      (optional — auto-generated if missing)
+ *  - Mot de passe / كلمة المرور          (optional — default applied if missing)
  */
 export function parseTeachersExcel(buffer: ArrayBuffer): {
   rows: ParsedTeacherRow[];
@@ -168,8 +182,12 @@ export function parseTeachersExcel(buffer: ArrayBuffer): {
   if (raw.length === 0) return { rows: [], detectedHeaders: [], totalRows: 0 };
 
   const spec: Record<string, ColSpec> = {
-    firstName: { keys: ["prénom", "prenom", "first name", "الاسم"] },
-    lastName: { keys: ["nom", "last name", "family name", "النسب", "لقب"], exclude: ["prénom", "prenom", "first"] },
+    ppr: { keys: ["ppr", "matricule", "ن.ب.م"] },
+    firstName: { keys: ["prénom", "prenom", "first name", "الاسم"], exclude: ["arabe", "بالعربية"] },
+    lastName: { keys: ["nom", "last name", "family name", "النسب", "لقب", "الاسم العائلي"], exclude: ["prénom", "prenom", "first", "arabe", "بالعربية"] },
+    firstNameAr: { keys: ["prénom arabe", "prenom arabe", "prénom (arabe)", "prenom (arabe)", "الاسم الشخصي بالعربية", "الاسم بالعربية", "الاسم العربي"] },
+    lastNameAr: { keys: ["nom arabe", "nom (arabe)", "النسب بالعربية", "اللقب بالعربية", "النسب العربي", "الاسم العائلي بالعربية"] },
+    phone: { keys: ["téléphone", "telephone", "tel", "phone", "mobile", "gsm", "الهاتف", "رقم الهاتف"], exclude: ["parent", "ولي", "والد"] },
     matiere: { keys: ["matière", "matiere", "subject", "المادة", "تخصص"] },
     email: { keys: ["email", "e-mail", "mail", "courriel", "البريد"] },
     password: { keys: ["password", "mot de passe", "pass", "كلمة المرور"] },
@@ -201,17 +219,30 @@ export function parseTeachersExcel(buffer: ArrayBuffer): {
   const dataRows = headerRowIdx >= 0 ? raw.slice(headerRowIdx + 1) : raw;
   const rows: ParsedTeacherRow[] = [];
 
+  const pick = (r: any[], field: string): string => {
+    const idx = colMap[field];
+    return idx !== undefined ? String(r[idx] ?? "").trim() : "";
+  };
+
   for (const r of dataRows) {
-    const firstName = colMap.firstName !== undefined ? String(r[colMap.firstName] ?? "").trim() : "";
-    const lastName = colMap.lastName !== undefined ? String(r[colMap.lastName] ?? "").trim() : "";
-    const matiere = colMap.matiere !== undefined ? String(r[colMap.matiere] ?? "").trim() : "";
+    const firstName = pick(r, "firstName");
+    const lastName = pick(r, "lastName");
+    const matiere = pick(r, "matiere");
     if (!firstName && !lastName && !matiere) continue; // fully empty row
-    const email = colMap.email !== undefined ? String(r[colMap.email] ?? "").trim() : "";
-    const password = colMap.password !== undefined ? String(r[colMap.password] ?? "").trim() : "";
+    const ppr = pick(r, "ppr");
+    const firstNameAr = pick(r, "firstNameAr");
+    const lastNameAr = pick(r, "lastNameAr");
+    const phone = pick(r, "phone");
+    const email = pick(r, "email");
+    const password = pick(r, "password");
     rows.push({
       firstName,
       lastName,
       matiere,
+      ppr: ppr || undefined,
+      firstNameAr: firstNameAr || undefined,
+      lastNameAr: lastNameAr || undefined,
+      phone: phone || undefined,
       email: email || undefined,
       password: password || undefined,
     });
@@ -336,6 +367,9 @@ export function parseServiceFile(buffer: ArrayBuffer): {
  *  - Code Massar / الرمز المساري
  *  - Nom / النسب
  *  - Prénom / الاسم
+ *  - Nom (arabe) / النسب بالعربية        (optional)
+ *  - Prénom (arabe) / الاسم بالعربية     (optional)
+ *  - Téléphone parent / هاتف ولي الأمر   (optional)
  *  - Classe / القسم
  *  - Niveau / المستوى (optional)
  *
@@ -349,11 +383,16 @@ export function parseStudentExcel(buffer: ArrayBuffer): {
   const raw = readSheetRows(buffer);
   if (raw.length === 0) return { rows: [], detectedHeaders: [], totalRows: 0 };
 
-  // Header detection — find the row that contains a Massar-like column
-  const headerKeywords = {
-    codeMassar: ["code massar", "codemassar", "massar", "الرمز المساري", "الرمز", "massar"],
-    firstName: ["prénom", "prenom", "nom de famille", "الاسم", "prenom"],
-    lastName: ["nom", "نسب", "النسب", "nom "],
+  // Header detection — find the row that contains a Massar-like column.
+  // Order matters: the most specific keys (arabic names, parent phone) must be
+  // tested before the generic ones (Nom / Prénom) — each column is used once.
+  const headerKeywords: Record<string, string[]> = {
+    codeMassar: ["code massar", "codemassar", "massar", "الرمز المساري", "الرمز"],
+    firstNameAr: ["prénom arabe", "prenom arabe", "prénom (arabe)", "prenom (arabe)", "الاسم الشخصي بالعربية", "الاسم بالعربية", "الاسم العربي"],
+    lastNameAr: ["nom arabe", "nom (arabe)", "النسب بالعربية", "اللقب بالعربية", "الاسم العائلي بالعربية"],
+    parentPhone: ["téléphone parent", "telephone parent", "tel parent", "parent phone", "هاتف ولي الأمر", "هاتف الولي", "رقم هاتف ولي"],
+    firstName: ["prénom", "prenom", "nom de famille", "الاسم"],
+    lastName: ["nom", "نسب", "النسب"],
     classe: ["classe", "القسم", "section"],
     niveau: ["niveau", "المستوى", "level"],
   };
@@ -377,17 +416,22 @@ export function parseStudentExcel(buffer: ArrayBuffer): {
   for (let i = 0; i < Math.min(raw.length, 20); i++) {
     const row = raw[i];
     const map: Record<string, number> = {};
+    const usedCols = new Set<number>();
     for (let c = 0; c < row.length; c++) {
       const h = String(row[c] || "");
       if (!h) continue;
       for (const key of Object.keys(headerKeywords)) {
+        if (key in map) continue;
+        if (usedCols.has(c)) break;
         if (matchHeader(h, headerKeywords[key as keyof typeof headerKeywords])) {
-          if (!(key in map)) map[key] = c;
+          map[key] = c;
+          usedCols.add(c);
+          break;
         }
       }
     }
     // We need at least codeMassar + name + classe
-    if ("codeMassar" in map && "classe" in map && ("firstName" in map || "lastName" in map)) {
+    if ("codeMassar" in map && "classe" in map && ("firstName" in map || "lastName" in map || "firstNameAr" in map || "lastNameAr" in map)) {
       headerRowIdx = i;
       colMap = map;
       break;
@@ -418,12 +462,16 @@ export function parseStudentExcel(buffer: ArrayBuffer): {
     let lastName = colMap.lastName !== undefined ? String(r[colMap.lastName] ?? "").trim() : "";
 
     // Handle case where only one combined "Nom Prénom" column exists
-    if (!firstName && !lastName) continue;
+    if (!firstName && !lastName && !colMap.firstNameAr && !colMap.lastNameAr) continue;
     if (!lastName && firstName.includes(" ")) {
       const parts = firstName.split(" ");
       lastName = parts[0];
       firstName = parts.slice(1).join(" ");
     }
+
+    const firstNameAr = colMap.firstNameAr !== undefined ? String(r[colMap.firstNameAr] ?? "").trim() : "";
+    const lastNameAr = colMap.lastNameAr !== undefined ? String(r[colMap.lastNameAr] ?? "").trim() : "";
+    const parentPhone = colMap.parentPhone !== undefined ? String(r[colMap.parentPhone] ?? "").trim() : "";
 
     const classeCode = String(r[colMap.classe] ?? "").trim();
     const niveauCode = colMap.niveau !== undefined ? String(r[colMap.niveau] ?? "").trim() || undefined : undefined;
@@ -432,6 +480,9 @@ export function parseStudentExcel(buffer: ArrayBuffer): {
       codeMassar,
       firstName: firstName || "",
       lastName: lastName || "",
+      firstNameAr: firstNameAr || undefined,
+      lastNameAr: lastNameAr || undefined,
+      parentPhone: parentPhone || undefined,
       classeCode,
       niveauCode,
     });

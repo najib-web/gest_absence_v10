@@ -38,6 +38,14 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { REPORT_TEMPLATES, fillTemplate } from "@/lib/report-templates";
 
 type Status = "PRESENT" | "ABSENT" | "RETARD";
 
@@ -345,6 +353,15 @@ export function TeacherAttendance({
 
       <OrientationReportDialog
         target={reportTarget}
+        sessionCtx={
+          {
+            classe: session.classe.code,
+            groupe: (session as any).groupe?.code ?? null,
+            teacherName: `${session.teacher.lastName} ${session.teacher.firstName}`,
+            matiere: locale === "ar" ? session.subjectAr || session.subject : session.subject,
+            date: formatDate(session.date, locale),
+          }
+        }
         sessionId={sessionId}
         existingAbsenceId={
           reportTarget
@@ -438,23 +455,74 @@ function ReasonDialog({
   );
 }
 
-// Dialog: teacher writes an orientation report for a student and sends it to the surveillant
+// Dialog: teacher writes an orientation report for a student and sends it to the surveillant.
+// Choix entre des rapports prêts à l'emploi (modèles bilingues, pré-remplis avec le
+// contexte de la séance) et la rédaction libre — le texte reste modifiable dans les deux cas.
 function OrientationReportDialog({
   target,
+  sessionCtx,
   sessionId,
   existingAbsenceId,
   onClose,
   onSent,
 }: {
   target: { id: string; name: string } | null;
+  sessionCtx: {
+    classe: string;
+    groupe: string | null;
+    teacherName: string;
+    matiere: string;
+    date: string;
+  } | null;
   sessionId: string;
   existingAbsenceId: string | null;
   onClose: () => void;
   onSent: (studentId: string) => void;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const isAr = locale === "ar";
+  const [templateId, setTemplateId] = useState("custom");
+  const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [stats, setStats] = useState<{ absences: number; seuil: number } | null>(null);
   const [sending, setSending] = useState(false);
+
+  // Compteurs d'absences non justifiées de l'élève (pour pré-remplir {absences} / {seuil})
+  useEffect(() => {
+    setStats(null);
+    if (!target) return;
+    let cancelled = false;
+    fetch("/api/students/absence-counts")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!d || cancelled) return;
+        const s = (d.students ?? []).find((x: { id: string }) => x.id === target.id);
+        if (s) setStats({ absences: s.unjustifiedAbsences ?? 0, seuil: d.threshold ?? 3 });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [target]);
+
+  function applyTemplate(id: string) {
+    setTemplateId(id);
+    if (id === "custom" || !target || !sessionCtx) return;
+    const tpl = REPORT_TEMPLATES.find((x) => x.id === id);
+    if (!tpl) return;
+    const filled = fillTemplate(isAr ? tpl.contentAr : tpl.contentFr, {
+      eleve: target.name,
+      classe: sessionCtx.classe,
+      groupe: sessionCtx.groupe ? (isAr ? ` - مجموعة ${sessionCtx.groupe}` : ` - groupe ${sessionCtx.groupe}`) : "",
+      enseignant: sessionCtx.teacherName,
+      matiere: sessionCtx.matiere,
+      date: sessionCtx.date,
+      absences: stats?.absences ?? "…",
+      seuil: stats?.seuil ?? "…",
+    });
+    setTitle(isAr ? tpl.titleAr : tpl.titleFr);
+    setContent(filled);
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -463,12 +531,14 @@ function OrientationReportDialog({
     try {
       await apiPost("/api/orientations", {
         studentId: target.id,
-        title: t.orientationTitle,
+        title: title || t.orientationTitle,
         content,
         sessionId,
         absenceId: existingAbsenceId ?? undefined,
       });
       toast.success(t.reportSent);
+      setTemplateId("custom");
+      setTitle("");
       setContent("");
       onSent(target.id);
     } catch (e) {
@@ -480,7 +550,7 @@ function OrientationReportDialog({
 
   return (
     <Dialog open={!!target} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent>
+      <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Send className="h-4 w-4 text-amber-600" />
@@ -492,12 +562,33 @@ function OrientationReportDialog({
         </DialogHeader>
         <form onSubmit={submit} className="space-y-4">
           <div className="space-y-2">
+            <Label>{t.reportTemplate}</Label>
+            <Select value={templateId} onValueChange={applyTemplate}>
+              <SelectTrigger>
+                <SelectValue placeholder={t.reportTemplate} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="custom">{t.customReport}</SelectItem>
+                {REPORT_TEMPLATES.map((tpl) => (
+                  <SelectItem key={tpl.id} value={tpl.id}>
+                    {isAr ? tpl.labelAr : tpl.labelFr}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {templateId !== "custom" && (
+              <p className="text-xs text-emerald-600 dark:text-emerald-400">{t.templateHint}</p>
+            )}
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="rep-content">{t.reportContent}</Label>
             <Textarea
               id="rep-content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              rows={5}
+              rows={9}
+              className="min-h-44"
+              dir={isAr ? "rtl" : "ltr"}
               placeholder={t.reportPlaceholder}
               required
             />

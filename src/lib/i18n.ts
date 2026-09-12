@@ -347,6 +347,22 @@ export const translations = {
     errInvalidSlot: "Créneau invalide (1h ou 2h, 08:00→18:00)",
     errTeacherConflict: "Conflit : enseignant déjà occupé sur ce créneau",
     errClassConflict: "Conflit : classe/groupe déjà occupé sur ce créneau",
+    // Colonnes arabes & téléphone parent
+    lastNameAr: "Nom (arabe)",
+    firstNameAr: "Prénom (arabe)",
+    parentPhone: "Téléphone Parent",
+    callParent: "Appeler le parent",
+    phoneMissing: "Numéro manquant",
+    // Modèles de rapports prêts à l'emploi
+    reportTemplate: "Modèle de rapport",
+    customReport: "Rédiger mon propre rapport",
+    templateHint: "Modèle appliqué — vous pouvez librement adapter le texte avant l'envoi",
+    reportA4Hint: "Format A4 — police arabique, 10 pt",
+    // Export grille horaire
+    exportSchedule: "Exporter la grille",
+    exportXlsx: "Excel (.xlsx)",
+    exportCsv: "CSV (.csv)",
+    noSlotsToExport: "Aucune séance à exporter",
   },
   ar: {
     appName: "تدبير الغيابات",
@@ -675,6 +691,22 @@ export const translations = {
     errInvalidSlot: "فترة غير صالحة (1 أو 2 ساعة، 08:00→18:00)",
     errTeacherConflict: "تعارض: الأستاذ مشغول في هذه الفترة",
     errClassConflict: "تعارض: القسم/المجموعة مشغول في هذه الفترة",
+    // الأعمدة العربية وهاتف ولي الأمر
+    lastNameAr: "النسب (بالعربية)",
+    firstNameAr: "الاسم (بالعربية)",
+    parentPhone: "هاتف ولي الأمر",
+    callParent: "الاتصال بولي الأمر",
+    phoneMissing: "الرقم غير متوفر",
+    // نماذج التقارير الجاهزة
+    reportTemplate: "نموذج التقرير",
+    customReport: "تحرير تقريري بنفسي",
+    templateHint: "تم تطبيق النموذج — يمكنك تعديل النص قبل الإرسال",
+    reportA4Hint: "صيغة A4 — خط عربي، 10 نقاط",
+    // تصدير الجدول الأسبوعي
+    exportSchedule: "تصدير الجدول",
+    exportXlsx: "Excel (.xlsx)",
+    exportCsv: "CSV (.csv)",
+    noSlotsToExport: "لا توجد حصص للتصدير",
   },
 } as const;
 

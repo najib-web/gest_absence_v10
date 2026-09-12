@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   }
   try {
     const body = await req.json();
-    const { firstName, lastName, matiere, matiereAr, email, password } = body;
+    const { firstName, lastName, matiere, matiereAr, email, password, ppr, firstNameAr, lastNameAr, phone } = body;
     if (!firstName || !lastName || !matiere || !email || !password) {
       return NextResponse.json({ error: "Champs manquants" }, { status: 400 });
     }
@@ -48,6 +48,10 @@ export async function POST(req: NextRequest) {
         lastName,
         matiere,
         matiereAr: matiereAr || null,
+        ppr: ppr || null,
+        firstNameAr: firstNameAr || null,
+        lastNameAr: lastNameAr || null,
+        phone: phone || null,
       },
       include: { user: { select: { email: true, name: true } } },
     });

@@ -6,11 +6,18 @@
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas-pro";
 
-const MARGIN_MM = 8;        // marge de page
+const MARGIN_MM = 8;        // marge de page par défaut
 const TOLERANCE_MM = 12;    // tolérance de coupure entre pages
 const JPEG_QUALITY = 0.92;
 
-export async function exportElementToPdf(element: HTMLElement, fileName: string) {
+export async function exportElementToPdf(
+  element: HTMLElement,
+  fileName: string,
+  options?: { marginMm?: number }
+) {
+  // Un document déjà calé A4 (210 mm de large avec son propre padding) s'exporte
+  // avec une marge nulle pour conserver un PDF A4 exact, sans double mise à l'échelle.
+  const marginMm = options?.marginMm ?? MARGIN_MM;
   const canvas = await html2canvas(element, {
     scale: 2,
     useCORS: true,
@@ -22,14 +29,15 @@ export async function exportElementToPdf(element: HTMLElement, fileName: string)
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
 
-  const usableW = pageW - MARGIN_MM * 2;
-  const usableH = pageH - MARGIN_MM * 2;
+  const usableW = pageW - marginMm * 2;
+  const usableH = pageH - marginMm * 2;
 
   const imgH = (canvas.height * usableW) / canvas.width;
 
-  if (imgH <= usableH) {
-    // Tout tient sur une page
-    pdf.addImage(canvas.toDataURL("image/jpeg", JPEG_QUALITY), "JPEG", MARGIN_MM, MARGIN_MM, usableW, imgH, undefined, "FAST");
+  if (imgH <= usableH || imgH <= usableH * 1.02) {
+    // Tout tient sur une page (tolérance 2 % pour éviter une page fantôme de quelques pixels)
+    const drawH = Math.min(imgH, usableH);
+    pdf.addImage(canvas.toDataURL("image/jpeg", JPEG_QUALITY), "JPEG", marginMm, marginMm, usableW, drawH, undefined, "FAST");
   } else {
     // Pagination avec chevauchement de tolérance pour ne pas couper le texte
     const pxPerMm = canvas.width / usableW;
@@ -51,7 +59,7 @@ export async function exportElementToPdf(element: HTMLElement, fileName: string)
 
       if (!first) pdf.addPage();
       const sliceImgH = (h * usableW) / canvas.width;
-      pdf.addImage(slice.toDataURL("image/jpeg", JPEG_QUALITY), "JPEG", MARGIN_MM, MARGIN_MM, usableW, sliceImgH, undefined, "FAST");
+      pdf.addImage(slice.toDataURL("image/jpeg", JPEG_QUALITY), "JPEG", marginMm, marginMm, usableW, sliceImgH, undefined, "FAST");
       first = false;
       y += sliceHpx;
     }

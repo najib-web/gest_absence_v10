@@ -5,7 +5,7 @@
 
 import { useI18n } from "@/lib/i18n-context";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Printer, Loader2, Download } from "lucide-react";
 import { useRef, useState } from "react";
@@ -68,7 +68,8 @@ export function ReportPrintDialog({
     try {
       await exportElementToPdf(
         docRef.current,
-        `rapport-orientation-${current.id.slice(-8).toUpperCase()}.pdf`
+        `rapport-orientation-${current.id.slice(-8).toUpperCase()}.pdf`,
+        { marginMm: 0 } // le document est déjà calé A4 avec son propre padding
       );
     } catch (e) {
       console.error(e);
@@ -79,9 +80,10 @@ export function ReportPrintDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[860px] max-h-[88vh] overflow-y-auto">
         <DialogHeader className="no-print">
           <DialogTitle>{t.reportPreview}</DialogTitle>
+          <DialogDescription>{t.reportA4Hint}</DialogDescription>
         </DialogHeader>
 
         <div className="flex justify-end gap-2 no-print">
@@ -107,7 +109,7 @@ export function ReportPrintDialog({
   );
 }
 
-/** The formal document itself — isolated for printing */
+/** The formal document itself — isolated for printing. A4 (210×297 mm), police arabique, 10 pt. */
 export function ReportDocument({
   orientation,
   locale,
@@ -119,21 +121,37 @@ export function ReportDocument({
 }) {
   const isAr = locale === "ar";
   const dir = isAr ? "rtl" : "ltr";
+  // Police arabique formelle pour l'arabe, serif classique pour le français
+  const fontFamily = isAr
+    ? '"Noto Naskh Arabic", "Amiri", "Sakkal Majalla", "Traditional Arabic", "Times New Roman", serif'
+    : '"Times New Roman", "Liberation Serif", Tinos, Georgia, serif';
 
   return (
-    <div className="print-area rounded-lg border bg-white text-black p-6 sm:p-8" dir={dir}>
+    <div
+      className="print-area rounded-lg border bg-white text-black mx-auto shadow-sm"
+      dir={dir}
+      style={{
+        width: "210mm",
+        maxWidth: "100%",
+        minHeight: "297mm",
+        padding: "16mm 15mm",
+        fontSize: "10pt",
+        lineHeight: 1.65,
+        fontFamily,
+      }}
+    >
       {/* Header */}
       <div className="text-center">
-        <div className="text-lg font-bold uppercase tracking-wide">
+        <div className="text-[14pt] font-bold uppercase tracking-wide">
           {t.appSubtitle}
         </div>
-        <div className="text-sm text-gray-600">{t.appName}</div>
-        <div className="mt-3 inline-block border-2 border-black px-6 py-1.5 text-base font-bold">
+        <div className="text-[10pt] text-gray-600">{t.appName}</div>
+        <div className="mt-3 inline-block border-2 border-black px-6 py-1.5 text-[13pt] font-bold">
           {isAr ? "تقرير توجيه" : "RAPPORT D'ORIENTATION"}
         </div>
       </div>
 
-      <div className="mt-4 flex justify-between text-xs text-gray-600">
+      <div className="mt-4 flex justify-between text-[8.5pt] text-gray-600">
         <span>
           {t.reportRef}: <span className="font-mono">{orientation.id.slice(-8).toUpperCase()}</span>
         </span>
@@ -145,7 +163,7 @@ export function ReportDocument({
       <Separator className="my-4 bg-black/20" />
 
       {/* Student info */}
-      <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+      <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-[10pt]">
         <InfoLine label={t.student} value={`${orientation.student.lastName} ${orientation.student.firstName}`} />
         <InfoLine label={t.codeMassar} value={orientation.student.codeMassar} mono />
         <InfoLine label={t.classe} value={orientation.student.classe?.code ?? "—"} />
@@ -185,7 +203,7 @@ export function ReportDocument({
       </div>
 
       {/* Absence stats */}
-      <div className="mt-4 rounded-md bg-gray-50 border border-gray-200 p-3 text-sm">
+      <div className="mt-4 rounded-md bg-gray-50 border border-gray-200 p-3 text-[10pt]">
         <div className="font-semibold mb-1">{t.absenceSummary} :</div>
         <div className="flex flex-wrap gap-x-8 gap-y-1 text-gray-800">
           <span>
@@ -199,20 +217,19 @@ export function ReportDocument({
 
       {/* Report title + content */}
       <div className="mt-4">
-        <div className="text-sm font-bold mb-1">{orientation.title}</div>
-        <p className="text-sm whitespace-pre-wrap leading-relaxed min-h-[80px] border-t border-b border-gray-200 py-3">
+        <div className="text-[11pt] font-bold mb-1">{orientation.title}</div>
+        <p className="text-[10pt] whitespace-pre-wrap leading-relaxed min-h-[70mm] border-t border-b border-gray-300 py-3">
           {orientation.content}
         </p>
       </div>
 
       {/* Status + signatures */}
       {orientation.signature ? (
-        <div className="mt-6 grid grid-cols-3 gap-6 text-sm">
+        <div className="mt-8 grid grid-cols-3 gap-6 text-[10pt]">
           <div>
-            <div className="text-xs text-gray-500 mb-1">
+            <div className="text-[8.5pt] text-gray-500 mb-1">
               {isAr ? "الاستاذ" : "L'enseignant"}
             </div>
-            { }
             <img
               src={orientation.signature}
               alt={isAr ? "التوقيع" : "Signature"}
@@ -221,28 +238,28 @@ export function ReportDocument({
             <div className="border-t border-gray-400 w-40" />
           </div>
           <div>
-            <div className="text-xs text-gray-500 mb-6">
+            <div className="text-[8.5pt] text-gray-500 mb-6">
               {isAr ? "الحراسة العامة" : "Le Surveillant"}
             </div>
             <div className="border-t border-gray-400 w-40" />
           </div>
           <div>
-            <div className="text-xs text-gray-500 mb-6">
+            <div className="text-[8.5pt] text-gray-500 mb-6">
               {isAr ? "خاتم المؤسسة" : "Cachet de l'établissement"}
             </div>
             <div className="border-t border-gray-400 w-40" />
           </div>
         </div>
       ) : (
-        <div className="mt-6 grid grid-cols-2 gap-6 text-sm">
+        <div className="mt-8 grid grid-cols-2 gap-6 text-[10pt]">
           <div>
-            <div className="text-xs text-gray-500 mb-6">
+            <div className="text-[8.5pt] text-gray-500 mb-6">
               {isAr ? "الحراسة العامة" : "Le Surveillant"}
             </div>
             <div className="border-t border-gray-400 w-40" />
           </div>
           <div>
-            <div className="text-xs text-gray-500 mb-6">
+            <div className="text-[8.5pt] text-gray-500 mb-6">
               {isAr ? "خاتم المؤسسة" : "Cachet de l'établissement"}
             </div>
             <div className="border-t border-gray-400 w-40" />
@@ -250,7 +267,7 @@ export function ReportDocument({
         </div>
       )}
 
-      <div className="mt-4 text-center text-[10px] text-gray-400">
+      <div className="mt-5 text-center text-[8pt] text-gray-400">
         {t.printedOn} {new Date().toLocaleString(isAr ? "ar-MA" : "fr-FR")}
       </div>
     </div>
@@ -260,7 +277,7 @@ export function ReportDocument({
 function InfoLine({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="flex items-baseline gap-2">
-      <span className="text-gray-500 text-xs min-w-24">{label} :</span>
+      <span className="text-gray-500 text-[8.5pt] min-w-24">{label} :</span>
       <span className={`font-medium ${mono ? "font-mono" : ""}`}>{value}</span>
     </div>
   );
