@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useI18n } from "@/lib/i18n-context";
-import { useFetch, apiPost, apiDelete } from "@/lib/hooks";
+import { useFetch, apiPost, apiDelete, apiPatch } from "@/lib/hooks";
 import { SUBJECTS } from "@/lib/subjects";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Loader2, BookOpen, UserPlus, CalendarClock, Layers, Upload, Download, FileSpreadsheet, CheckCircle2, XCircle } from "lucide-react";
+import { Plus, Trash2, Loader2, BookOpen, UserPlus, CalendarClock, Layers, Upload, Download, FileSpreadsheet, CheckCircle2, XCircle, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -63,6 +63,27 @@ export function AdminTeachers() {
   const [committing, setCommitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const lastFileRef = useRef<File | null>(null);
+
+  // Réinitialisation du mot de passe d'un enseignant (par le surveillant)
+  const [pwdTarget, setPwdTarget] = useState<{ id: string; name: string; email: string } | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [pwdSaving, setPwdSaving] = useState(false);
+
+  async function resetPassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (!pwdTarget) return;
+    setPwdSaving(true);
+    try {
+      await apiPatch(`/api/users/${pwdTarget.id}`, { password: newPassword });
+      toast.success(t.passwordUpdated);
+      setPwdTarget(null);
+      setNewPassword("");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setPwdSaving(false);
+    }
+  }
 
   const teachers = teachersData?.teachers ?? [];
   const classes = classesData?.classes ?? [];
@@ -228,6 +249,23 @@ export function AdminTeachers() {
                       </TableCell>
                       <TableCell className="text-center">{tc.services.length}</TableCell>
                       <TableCell className="text-center">{tc._count.sessions}</TableCell>
+                      <TableCell className="text-end">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          title={t.resetPassword}
+                          onClick={() => {
+                            setPwdTarget({
+                              id: tc.userId,
+                              name: `${tc.lastName} ${tc.firstName}`,
+                              email: tc.user.email,
+                            });
+                            setNewPassword("");
+                          }}
+                        >
+                          <KeyRound className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
@@ -309,6 +347,43 @@ export function AdminTeachers() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Dialog : réinitialiser le mot de passe enseignant */}
+      <Dialog open={!!pwdTarget} onOpenChange={(v) => !v && setPwdTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <KeyRound className="h-4 w-4 text-primary" />
+              {t.resetPassword}
+            </DialogTitle>
+            <DialogDescription>
+              {pwdTarget?.name} — {pwdTarget?.email}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={resetPassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="tc-new-pwd">{t.newPassword}</Label>
+              <Input
+                id="tc-new-pwd"
+                type="text"
+                minLength={6}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setPwdTarget(null)}>
+                {t.cancel}
+              </Button>
+              <Button type="submit" disabled={pwdSaving || newPassword.length < 6}>
+                {pwdSaving ? <Loader2 className="h-4 w-4 me-2 animate-spin" /> : <KeyRound className="h-4 w-4 me-2" />}
+                {t.save}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <TeacherDialog open={teacherOpen} onOpenChange={setTeacherOpen} onSaved={() => refresh()} subjects={SUBJECTS} />
       <ServiceDialog

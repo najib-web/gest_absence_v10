@@ -5,7 +5,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -79,6 +79,9 @@ model Student {
   codeMassar String   @unique
   firstName  String
   lastName   String
+  firstNameAr String?
+  lastNameAr  String?
+  parentPhone String?
   classeId   String
   classe     Classe   @relation(fields: [classeId], references: [id], onDelete: Cascade)
   groupId    String?
@@ -100,8 +103,13 @@ model Teacher {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   firstName String
   lastName  String
+  firstNameAr String?
+  lastNameAr  String?
+  phone     String?
   matiere   String   // subject taught (e.g. "Mathématiques")
   matiereAr String?
+  ppr       String?  // numéro PPR (professeur)
+  signature String?  // signature manuscrite de l'enseignant (data URL)
   createdAt DateTime @default(now())
 
   services     ServiceTable[]
@@ -218,6 +226,7 @@ model Orientation {
   session     Session?  @relation(fields: [sessionId], references: [id], onDelete: SetNull)
   title       String
   content     String
+  signature   String?
   status      String    @default("PENDING")
   thresholdAtCreation Int?
   resolutionNote String?

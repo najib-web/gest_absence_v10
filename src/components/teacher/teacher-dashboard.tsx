@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { useI18n } from "@/lib/i18n-context";
 import { AppShell, type SessionUser, type NavItem } from "@/components/app-shell";
-import { LayoutDashboard, CalendarClock, ClipboardCheck, Send, CalendarDays, History } from "lucide-react";
+import { LayoutDashboard, CalendarClock, ClipboardCheck, Send, CalendarDays, History, UserPen } from "lucide-react";
 import { TeacherOverview } from "@/components/teacher/teacher-overview";
 import { TeacherSessions } from "@/components/teacher/teacher-sessions";
 import { TeacherAttendance } from "@/components/teacher/teacher-attendance";
 import { TeacherOriented } from "@/components/teacher/teacher-oriented";
 import { TeacherSchedule } from "@/components/teacher/teacher-schedule";
 import { AbsenceHistory } from "@/components/absence-history";
+import { TeacherProfile } from "@/components/teacher/teacher-profile";
 
 export function TeacherDashboard({ user, onLogout }: { user: SessionUser; onLogout: () => void }) {
   const { t } = useI18n();
@@ -34,6 +35,7 @@ export function TeacherDashboard({ user, onLogout }: { user: SessionUser; onLogo
     { id: "sessions", label: t.mySessions, icon: <CalendarClock className="h-4 w-4" /> },
     { id: "oriented", label: t.orientedStudents, icon: <Send className="h-4 w-4" /> },
     { id: "historique", label: t.absenceHistory, icon: <History className="h-4 w-4" /> },
+    { id: "profile", label: t.myProfileSignature, icon: <UserPen className="h-4 w-4" /> },
   ];
 
   // Hide nav when in attendance view (full focus)
@@ -67,6 +69,7 @@ export function TeacherDashboard({ user, onLogout }: { user: SessionUser; onLogo
       )}
       {active === "oriented" && <TeacherOriented user={user} />}
       {active === "historique" && <AbsenceHistory />}
+      {active === "profile" && <TeacherProfile user={user} />}
     </AppShell>
   );
 }

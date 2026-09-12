@@ -194,6 +194,7 @@ export function AdminOrientations() {
       source: o.source,
       status: o.status,
       createdAt: o.createdAt,
+      signature: (o as any).signature ?? null,
       thresholdAtCreation: o.thresholdAtCreation,
       unjustifiedAbsences: o.unjustifiedAbsences,
       threshold: o.threshold,

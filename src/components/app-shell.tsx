@@ -17,7 +17,7 @@ export interface SessionUser {
   id: string;
   email: string;
   name: string;
-  role: "SURVEILLANT" | "ENSEIGNANT";
+  role: "DIRECTEUR" | "SURVEILLANT" | "ENSEIGNANT";
   teacherId?: string;
 }
 
@@ -45,8 +45,13 @@ export function AppShell({
     onLogout();
   }
 
-  const roleLabel = user.role === "SURVEILLANT" ? t.surveillant : t.enseignant;
-  const roleIcon = user.role === "SURVEILLANT" ? "🛡️" : "📚";
+  const roleLabel =
+    user.role === "DIRECTEUR"
+      ? t.directeur
+      : user.role === "SURVEILLANT"
+        ? t.surveillant
+        : t.enseignant;
+  const roleIcon = user.role === "DIRECTEUR" ? "🎓" : user.role === "SURVEILLANT" ? "🛡️" : "📚";
 
   return (
     <div className="min-h-screen flex flex-col bg-muted/20">
@@ -69,7 +74,7 @@ export function AppShell({
               <div className="hidden sm:block">
                 <div className="font-bold text-sm leading-tight">{t.appName}</div>
                 <div className="text-xs text-muted-foreground leading-tight">
-                  {user.role === "SURVEILLANT" ? t.adminDashboard : t.teacherDashboard}
+                  {user.role === "ENSEIGNANT" ? t.teacherDashboard : t.adminDashboard}
                 </div>
               </div>
             </div>

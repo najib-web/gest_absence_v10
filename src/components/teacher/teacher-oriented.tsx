@@ -36,6 +36,7 @@ interface Orientation {
   source: string;
   status: string;
   createdAt: string;
+  signature?: string | null;
   thresholdAtCreation: number | null;
   student: {
     firstName: string;
@@ -73,6 +74,7 @@ export function TeacherOriented({ user }: { user: SessionUser }) {
       source: o.source,
       status: o.status,
       createdAt: o.createdAt,
+      signature: o.signature ?? null,
       thresholdAtCreation: o.thresholdAtCreation,
       unjustifiedAbsences: o.unjustifiedAbsences,
       threshold: o.threshold,

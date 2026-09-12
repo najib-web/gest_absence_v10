@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { GraduationCap, Shield, BookOpen, Loader2, AlertCircle } from "lucide-react";
+import { GraduationCap, Shield, BookOpen, Loader2, AlertCircle, Landmark } from "lucide-react";
 import { useI18n } from "@/lib/i18n-context";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { toast } from "sonner";
@@ -14,7 +14,7 @@ interface SessionUser {
   id: string;
   email: string;
   name: string;
-  role: "SURVEILLANT" | "ENSEIGNANT";
+  role: "DIRECTEUR" | "SURVEILLANT" | "ENSEIGNANT";
   teacherId?: string;
 }
 
@@ -51,20 +51,14 @@ export function LoginView({ onLoggedIn }: { onLoggedIn: (user: SessionUser) => v
     }
   }
 
-  function quickFill(mail: string, pwd: string) {
-    setEmail(mail);
-    setPassword(pwd);
-  }
-
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-emerald-50 via-white to-emerald-50/30">
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center text-primary-foreground">
-              <GraduationCap className="h-5 w-5" />
-            </div>
+            { }
+            <img src="/icons/icon-192.png" alt="" className="w-9 h-9 rounded-lg shadow-sm" />
             <div>
               <div className="font-bold text-base leading-tight">{t.appName}</div>
               <div className="text-xs text-muted-foreground leading-tight">{t.appSubtitle}</div>
@@ -87,6 +81,11 @@ export function LoginView({ onLoggedIn }: { onLoggedIn: (user: SessionUser) => v
             </p>
           </div>
           <div className="grid gap-4">
+            <FeatureCard
+              icon={<Landmark className="h-5 w-5" />}
+              title={t.directeur}
+              desc={t.directorDesc}
+            />
             <FeatureCard
               icon={<Shield className="h-5 w-5" />}
               title={t.surveillant}
@@ -147,41 +146,6 @@ export function LoginView({ onLoggedIn }: { onLoggedIn: (user: SessionUser) => v
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t.signIn}
                 </Button>
               </form>
-
-              {/* Demo accounts */}
-              <div className="mt-6 pt-6 border-t">
-                <div className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">
-                  {t.demoAccounts}
-                </div>
-                <div className="grid gap-2">
-                  <button
-                    type="button"
-                    onClick={() => quickFill("surveillant@edu.ma", "surveillant123")}
-                    className="text-start p-3 rounded-lg border border-emerald-100 hover:border-primary/40 hover:bg-emerald-50/50 transition-colors text-sm"
-                  >
-                    <div className="flex items-center gap-2 font-medium">
-                      <Shield className="h-4 w-4 text-primary" />
-                      {t.surveillant}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1 font-mono">
-                      surveillant@edu.ma / surveillant123
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => quickFill("enseignant@edu.ma", "enseignant123")}
-                    className="text-start p-3 rounded-lg border border-emerald-100 hover:border-primary/40 hover:bg-emerald-50/50 transition-colors text-sm"
-                  >
-                    <div className="flex items-center gap-2 font-medium">
-                      <BookOpen className="h-4 w-4 text-primary" />
-                      {t.enseignant}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1 font-mono">
-                      enseignant@edu.ma / enseignant123
-                    </div>
-                  </button>
-                </div>
-              </div>
             </CardContent>
           </Card>
         </div>

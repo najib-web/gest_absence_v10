@@ -107,6 +107,14 @@ export async function POST(req: NextRequest) {
     const thresholdRow = await db.setting.findUnique({ where: { key: "absenceThreshold" } });
     const threshold = thresholdRow ? parseInt(thresholdRow.value) : 3;
 
+    // Signature : pour un rapport enseignant, on reprend la signature manuscrite
+    // du profil enseignant (snapshot figé sur le rapport).
+    let signatureSnapshot: string | null = body.signature ?? null;
+    if (!signatureSnapshot && finalSource === "TEACHER" && teacherId) {
+      const teacherRow = await db.teacher.findUnique({ where: { id: teacherId }, select: { signature: true } });
+      signatureSnapshot = teacherRow?.signature ?? null;
+    }
+
     const orientation = await db.orientation.create({
       data: {
         studentId,
@@ -115,6 +123,7 @@ export async function POST(req: NextRequest) {
         sessionId: sessionId || null,
         title: title || (finalSource === "TEACHER" ? "Rapport d'orientation" : "Orientation surveillant"),
         content,
+        signature: signatureSnapshot,
         status: "PENDING",
         thresholdAtCreation: finalSource === "SEUIL" ? threshold : null,
       },

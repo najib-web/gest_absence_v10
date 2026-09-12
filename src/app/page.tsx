@@ -7,12 +7,14 @@ import { AdminDashboard } from "@/components/admin/admin-dashboard";
 import { TeacherDashboard } from "@/components/teacher/teacher-dashboard";
 import { Loader2, GraduationCap } from "lucide-react";
 import { useI18n } from "@/lib/i18n-context";
+import { PwaRegister } from "@/components/pwa/pwa-register";
+import { InstallPrompt } from "@/components/pwa/install-prompt";
 
 interface SessionUser {
   id: string;
   email: string;
   name: string;
-  role: "SURVEILLANT" | "ENSEIGNANT";
+  role: "DIRECTEUR" | "SURVEILLANT" | "ENSEIGNANT";
   teacherId?: string;
 }
 
@@ -49,16 +51,18 @@ function PageContent() {
     return <LoginView onLoggedIn={(u) => setUser(u)} />;
   }
 
-  if (user.role === "SURVEILLANT") {
-    return <AdminDashboard user={user} onLogout={() => setUser(null)} />;
+  if (user.role === "ENSEIGNANT") {
+    return <TeacherDashboard user={user} onLogout={() => setUser(null)} />;
   }
 
-  return <TeacherDashboard user={user} onLogout={() => setUser(null)} />;
+  return <AdminDashboard user={user} onLogout={() => setUser(null)} />;
 }
 
 export default function Home() {
   return (
     <Providers>
+      <PwaRegister />
+      <InstallPrompt />
       <PageContent />
     </Providers>
   );

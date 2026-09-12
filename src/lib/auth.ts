@@ -6,11 +6,13 @@ import { db } from "@/lib/db";
 export const SESSION_COOKIE = "abs_session";
 const SECRET = process.env.AUTH_SECRET || "demo-secret-change-me";
 
+export type UserRole = "DIRECTEUR" | "SURVEILLANT" | "ENSEIGNANT";
+
 export interface SessionUser {
   id: string;
   email: string;
   name: string;
-  role: "SURVEILLANT" | "ENSEIGNANT";
+  role: UserRole;
   teacherId?: string;
 }
 
@@ -53,6 +55,7 @@ export async function authenticateUser(
   email: string,
   password: string
 ): Promise<SessionUser | null> {
+  await ensureDefaultAccounts();
   const user = await db.user.findUnique({
     where: { email: email.toLowerCase().trim() },
     include: { teacher: true },
@@ -64,9 +67,45 @@ export async function authenticateUser(
     id: user.id,
     email: user.email,
     name: user.name,
-    role: user.role as "SURVEILLANT" | "ENSEIGNANT",
+    role: user.role as UserRole,
     teacherId: user.teacher?.id,
   };
+}
+
+let defaultAccountsEnsured = false;
+
+// Crée les comptes de base (directeur, surveillant) s'ils n'existent pas.
+// Idempotent — exécuté une seule fois par process.
+export async function ensureDefaultAccounts(): Promise<void> {
+  if (defaultAccountsEnsured) return;
+  defaultAccountsEnsured = true;
+  try {
+    const directeur = await db.user.findUnique({ where: { email: "directeur@edu.ma" } });
+    if (!directeur) {
+      await db.user.create({
+        data: {
+          email: "directeur@edu.ma",
+          name: "Le Directeur",
+          password: "directeur123",
+          role: "DIRECTEUR",
+        },
+      });
+    }
+    const surveillant = await db.user.findUnique({ where: { email: "surveillant@edu.ma" } });
+    if (!surveillant) {
+      await db.user.create({
+        data: {
+          email: "surveillant@edu.ma",
+          name: "M. Karim Idrissi",
+          password: "surveillant123",
+          role: "SURVEILLANT",
+        },
+      });
+    }
+  } catch {
+    // DB indisponible au boot : on retentera au prochain appel.
+    defaultAccountsEnsured = false;
+  }
 }
 
 // Helper used by API routes to get the current user from the request cookies

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Noto_Sans_Arabic } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
@@ -22,7 +22,26 @@ const notoArabic = Noto_Sans_Arabic({
 
 export const metadata: Metadata = {
   title: "Gestion des Absences | Établissement Scolaire",
-  description: "Application de gestion des absences des élèves — Surveillant & Enseignant",
+  description:
+    "Application de gestion des absences des élèves — Directeur, Surveillant & Enseignant",
+  applicationName: "Absences",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Absences",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#059669",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
