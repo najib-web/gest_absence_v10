@@ -386,15 +386,18 @@ export function parseStudentExcel(buffer: ArrayBuffer): {
   // Header detection — find the row that contains a Massar-like column.
   // Order matters: the most specific keys (arabic names, parent phone) must be
   // tested before the generic ones (Nom / Prénom) — each column is used once.
-  const headerKeywords: Record<string, string[]> = {
-    codeMassar: ["code massar", "codemassar", "massar", "الرمز المساري", "الرمز"],
-    firstNameAr: ["prénom arabe", "prenom arabe", "prénom (arabe)", "prenom (arabe)", "الاسم الشخصي بالعربية", "الاسم بالعربية", "الاسم العربي"],
-    lastNameAr: ["nom arabe", "nom (arabe)", "النسب بالعربية", "اللقب بالعربية", "الاسم العائلي بالعربية"],
-    parentPhone: ["téléphone parent", "telephone parent", "tel parent", "parent phone", "هاتف ولي الأمر", "هاتف الولي", "رقم هاتف ولي"],
-    firstName: ["prénom", "prenom", "nom de famille", "الاسم"],
-    lastName: ["nom", "نسب", "النسب"],
-    classe: ["classe", "القسم", "section"],
-    niveau: ["niveau", "المستوى", "level"],
+  // Massar exports use « الاسم العائلي / الاسم الشخصي » (± « بالعربية ») — the
+  // generic « الاسم » key would swallow the family-name column, hence the
+  // specific keys + exclude lists.
+  const headerKeywords: Record<string, { keys: string[]; exclude?: string[] }> = {
+    codeMassar: { keys: ["code massar", "codemassar", "massar", "الرمز المساري", "الرمز"] },
+    firstNameAr: { keys: ["prénom arabe", "prenom arabe", "prénom (arabe)", "prenom (arabe)", "الاسم الشخصي بالعربية", "الاسم بالعربية", "الاسم العربي"] },
+    lastNameAr: { keys: ["nom arabe", "nom (arabe)", "النسب بالعربية", "اللقب بالعربية", "الاسم العائلي بالعربية"] },
+    parentPhone: { keys: ["téléphone parent", "telephone parent", "tel parent", "parent phone", "هاتف ولي الأمر", "هاتف الولي", "رقم هاتف ولي"] },
+    firstName: { keys: ["prénom", "prenom", "first name", "الاسم الشخصي", "الاسم"], exclude: ["العائلي", "بالعربية", "arabe"] },
+    lastName: { keys: ["nom", "النسب", "الاسم العائلي", "لقب", "last name", "family name"], exclude: ["الشخصي", "بالعربية", "arabe", "prénom", "prenom"] },
+    classe: { keys: ["classe", "القسم", "section"] },
+    niveau: { keys: ["niveau", "المستوى", "level"] },
   };
 
   function normalizeHeader(h: string): string {
@@ -406,9 +409,10 @@ export function parseStudentExcel(buffer: ArrayBuffer): {
       .replace(/[\u0300-\u036f]/g, "");
   }
 
-  function matchHeader(h: string, keys: string[]): boolean {
+  function matchHeader(h: string, field: { keys: string[]; exclude?: string[] }): boolean {
     const n = normalizeHeader(h);
-    return keys.some((k) => n === normalizeHeader(k) || n.includes(normalizeHeader(k)));
+    if (field.exclude?.some((k) => n.includes(normalizeHeader(k)))) return false;
+    return field.keys.some((k) => n === normalizeHeader(k) || n.includes(normalizeHeader(k)));
   }
 
   let headerRowIdx = -1;

@@ -70,3 +70,22 @@ Stage Summary:
 - Livré : onglet « Gestion des Données » pour Surveillant ET Directeur — vider 10 tables individuellement (avec avertissements de cascade et compteur d'enregistrements) ou toute la base (double confirmation tapée « VIDER », purge atomique TRUNCATE CASCADE, déconnexion automatique, comptes par défaut recréés au login suivant).
 - Bonus corrective : le rôle Directeur n'était qu'un spectateur (403 sur toutes les mutations) → il peut désormais tout faire comme le Surveillant, plus l'onglet Comptes.
 - Données de démo intactes (backup/restore prouvé). Lint 0, tsc 0, build OK. Rappel : réinitialiser le mot de passe Neon, changer les mots de passe par défaut avant production.
+
+---
+Task ID: 13
+Agent: Super Z (main agent)
+Task: Importer la liste officielle des élèves 2026-2027 (Liste_Eleves_2026-2027.xlsx, export Massar AR, 889 élèves).
+
+Work Log:
+- Analyse du fichier : 1 feuille « التلاميذ », 889 lignes × 8 colonnes (الرمز المساري, الاسم العائلي, الاسم الشخصي, القسم, المستوى, الاسم العائلي بالعربية, الاسم الشخصي بالعربية, هاتف ولي الأمر) ; 0 doublon, 0 champ requis manquant, téléphones non renseignés ; 29 classes réparties sur TC/1BAC/2BAC.
+- BUG CORRIGÉ (src/lib/excel.ts parseStudentExcel) : les en-têtes Massar « الاسم العائلي / الاسم الشخصي » étaient mal associés — « الاسم » (clé générique firstName) capturait la colonne du nom de famille → 843 élèves sans lastName, prénoms/noms inversés. Refonte de la détection : spec {keys, exclude} par champ + matchHeader avec exclusions ; clés spécifiques ajoutées (« الاسم العائلي » → lastName, « الاسم الشخصي » → firstName, « بالعربية » testés avant) ; rétrocompatibilité vérifiée sur le modèle FR ListEleve_20260905.xlsx (12/12 lignes OK).
+- Import réel exécuté via l'API de l'app (parcours authentique) : login directeur → POST /api/students/import mode=preview (889 rows, classesToCreate=[], 889 resolvables) → mode=commit → {"inserted":889,"skipped":0,"classesCreated":0,"errors":[]}.
+- État base (Neon) : 889 élèves, 889 avec noms arabes complets, 0 téléphone (absents du fichier), répartition par classe strictement identique au fichier (TCSF-1 37, TCSF-9 24, 2BACSMBF-1 2…) ; 3 classes vides restantes hors liste (1BACSC-1, 2BACPC-1, 2BACPC-2 — anciennes classes, laissées en place).
+- E2E navigateur (dispatchEvent, cookie Directeur injecté) : onglet Élèves → tableau 889 lignes, colonnes Code/Nom/Prénom/Nom AR/Prénom AR/Tél/Classe correctes ; recherche « Benlachkar » → 1 résultat exact (D155039657, بن لشكر فاطمة, TCSF-1) ; bouton Import + input file (.xlsx/.xls/.xlsm/.csv) présents (le clic ouvre le sélecteur natif — modal d'aperçu testé via API) ; onglet Classes → cartes avec effectifs peuplés (TCSF-1 « 37/40 », TCSF-9 « 24/40 »).
+- Scripts conservés : scripts/analyze-students-xlsx.py (stats fichier), scripts/test-parse-students.ts (test parseur), scripts/test-parse-regression.ts (non-régression FR), scripts/check-db-before-import.ts / check-db-after-import.ts (état base).
+- Vérifications : lint 0 erreur ; dev.log sans erreur (requêtes 200 uniquement) ; captures de vérification supprimées ; cookie de session temporaire supprimé.
+
+Stage Summary:
+- Livré : liste officielle 2026-2027 intégrée — 889 élèves importés dans Neon (0 erreur) via l'import Excel existant, dont le parseur a été corrigé pour reconnaître les en-têtes arabes de l'export Massar (nom/prénom + versions بالعربية correctement séparés).
+- Base : 889 élèves / 32 classes / 3 niveaux ; upsert par Code Massar → ré-import du même fichier = mise à jour sans doublon (téléphones pourront être ajoutés plus tard via un fichier enrichi).
+- Rappel maintenu : réinitialiser le mot de passe Neon, changer les mots de passe par défaut avant production.
