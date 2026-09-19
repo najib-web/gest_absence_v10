@@ -116,6 +116,7 @@ model Teacher {
   sessions     Session[]
   slots        ServiceSlot[]
   orientations Orientation[]
+  dismissals   AttendanceDismissal[]
 }
 
 // "Table de service" — a single assignment: Teacher X teaches Classe Y (optionally Groupe Z) for subject W
@@ -154,8 +155,29 @@ model ServiceSlot {
   subjectAr String?
   createdAt DateTime @default(now())
 
+  dismissals AttendanceDismissal[]
+
   @@unique([teacherId, dayOfWeek, startMin])
   @@index([dayOfWeek, startMin])
+}
+
+// Notification « appel non fait » supprimée manuellement par le staff
+// (surveillant/directeur) pour une occurrence de séance (slot + jour).
+// La suppression automatique est gérée par Session.attendanceDone ;
+// ce modèle couvre la suppression manuelle (ex : appel fait sur papier,
+// enseignant absent, séance annulée).
+model AttendanceDismissal {
+  id            String      @id @default(cuid())
+  slotId        String
+  slot          ServiceSlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  dateKey       String      // jour de la séance au format local "YYYY-MM-DD"
+  teacherId     String
+  teacher       Teacher     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  dismissedById String?     // User (surveillant/directeur) ayant supprimé la notification
+  createdAt     DateTime    @default(now())
+
+  @@unique([slotId, dateKey])
+  @@index([dateKey])
 }
 
 // =====================

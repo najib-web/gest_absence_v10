@@ -4,14 +4,19 @@
 // appels non faits (rappel enseignant / notification surveillant).
 // Rafraîchit les données toutes les 45 s et recalcule toutes les 30 s
 // avec l'horloge locale du navigateur (cohérent avec findCurrentSlot).
+//
+// Suppression des notifications :
+// - automatique dès que l'appel est enregistré (Session.attendanceDone) ;
+// - manuelle par le surveillant/directeur (AttendanceDismissal, filtrées ici).
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   computeMissedCalls,
   type MissedCall,
   type SessionLikeAlert,
   type SlotLikeAlert,
 } from "@/lib/attendance-alerts";
+import { localDateKey } from "@/lib/schedule";
 
 interface Options {
   /** teacherId pour l'enseignant (filtre sa grille) — undefined pour le staff */
@@ -25,6 +30,8 @@ interface Options {
 export function useAttendanceMonitor({ teacherId, enabled, onNewAlert }: Options) {
   const [slots, setSlots] = useState<SlotLikeAlert[]>([]);
   const [sessions, setSessions] = useState<SessionLikeAlert[]>([]);
+  // Clés "slotId|YYYY-MM-DD" des notifications supprimées manuellement (staff)
+  const [dismissedKeys, setDismissedKeys] = useState<Set<string>>(new Set());
   const [now, setNow] = useState<Date | null>(null);
   const seenRef = useRef<Set<string>>(new Set());
   const alertCbRef = useRef(onNewAlert);
@@ -44,7 +51,8 @@ export function useAttendanceMonitor({ teacherId, enabled, onNewAlert }: Options
     };
   }, [enabled]);
 
-  // Chargement des données (grille + séances du jour), re-poll toutes les 45 s
+  // Chargement des données (grille + séances du jour + suppressions manuelles),
+  // re-poll toutes les 45 s
   useEffect(() => {
     if (!enabled) return;
     let cancelled = false;
@@ -59,13 +67,23 @@ export function useAttendanceMonitor({ teacherId, enabled, onNewAlert }: Options
         teacherId ? `&teacherId=${encodeURIComponent(teacherId)}` : ""
       }`;
       try {
-        const [slotsRes, sessionsRes] = await Promise.all([
+        const [slotsRes, sessionsRes, dismissalsRes] = await Promise.all([
           fetch(slotsUrl).then((r) => (r.ok ? r.json() : { slots: [] })),
           fetch(sessionsUrl).then((r) => (r.ok ? r.json() : { sessions: [] })),
+          fetch("/api/attendance/dismissals")
+            .then((r) => (r.ok ? r.json() : { dismissals: [] }))
+            .catch(() => ({ dismissals: [] })),
         ]);
         if (!cancelled) {
           setSlots(slotsRes.slots ?? []);
           setSessions(sessionsRes.sessions ?? []);
+          setDismissedKeys(
+            new Set(
+              (dismissalsRes.dismissals ?? []).map(
+                (d: { slotId: string; dateKey: string }) => `${d.slotId}|${d.dateKey}`
+              )
+            )
+          );
         }
       } catch {
         // Réseau indisponible (offline) — on conserve les données précédentes
@@ -80,10 +98,12 @@ export function useAttendanceMonitor({ teacherId, enabled, onNewAlert }: Options
     };
   }, [teacherId, enabled]);
 
-  const missed: MissedCall[] = useMemo(
-    () => (enabled && now ? computeMissedCalls(slots, sessions, now) : []),
-    [enabled, now, slots, sessions]
-  );
+  const missed: MissedCall[] = useMemo(() => {
+    if (!enabled || !now) return [];
+    return computeMissedCalls(slots, sessions, now).filter(
+      (m) => !dismissedKeys.has(m.key)
+    );
+  }, [enabled, now, slots, sessions, dismissedKeys]);
 
   // Notifications : une seule alerte par occurrence de séance (clé stable)
   useEffect(() => {
@@ -95,5 +115,23 @@ export function useAttendanceMonitor({ teacherId, enabled, onNewAlert }: Options
     }
   }, [missed, enabled]);
 
-  return { missed };
+  /**
+   * Suppression manuelle de la notification d'une occurrence de séance
+   * (surveillant/directeur) — retire immédiatement l'alerte de la liste.
+   */
+  const dismiss = useCallback(async (m: Pick<MissedCall, "slotId" | "key">) => {
+    const dateKey = m.key.split("|")[1] || localDateKey(new Date());
+    const res = await fetch("/api/attendance/dismissals", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slotId: m.slotId, dateKey }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || "Erreur de suppression");
+    }
+    setDismissedKeys((prev) => new Set(prev).add(m.key));
+  }, []);
+
+  return { missed, dismiss };
 }

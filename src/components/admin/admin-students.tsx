@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/lib/i18n-context";
-import { useFetch, apiPost, apiDelete } from "@/lib/hooks";
+import { useFetch, apiPost, apiDelete, apiPatch } from "@/lib/hooks";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -35,6 +35,7 @@ import {
   Users,
   Plus,
   Phone,
+  Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -72,7 +73,8 @@ export function AdminStudents() {
   const [search, setSearch] = useState("");
   const [classeFilter, setClasseFilter] = useState<string>("all");
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [addOpen, setAddOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogStudent, setDialogStudent] = useState<any | null>(null); // null = création
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const { data: studentsData, loading, refresh } = useFetch<{ students: any[] }>("/api/students");
@@ -192,7 +194,7 @@ export function AdminStudents() {
             <Download className="h-4 w-4 me-2" />
             {t.download}
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setAddOpen(true)}>
+          <Button variant="outline" size="sm" onClick={() => { setDialogStudent(null); setDialogOpen(true); }}>
             <Plus className="h-4 w-4 me-2" />
             {t.add}
           </Button>
@@ -331,14 +333,25 @@ export function AdminStudents() {
                         </div>
                       </TableCell>
                       <TableCell className="text-end">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive"
-                          onClick={() => deleteStudent(s.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex gap-1 justify-end">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            title={t.edit}
+                            onClick={() => { setDialogStudent(s); setDialogOpen(true); }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive"
+                            onClick={() => deleteStudent(s.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -432,27 +445,31 @@ export function AdminStudents() {
         </DialogContent>
       </Dialog>
 
-      {/* Add Student Modal */}
-      <AddStudentDialog
-        open={addOpen}
-        onOpenChange={setAddOpen}
+      {/* Add / Edit Student Modal */}
+      <StudentDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
         classes={classes}
-        onAdded={() => refresh()}
+        student={dialogStudent}
+        onSaved={() => refresh()}
       />
     </div>
   );
 }
 
-function AddStudentDialog({
+function StudentDialog({
   open,
   onOpenChange,
   classes,
-  onAdded,
+  student,
+  onSaved,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   classes: any[];
-  onAdded: () => void;
+  /** null = création, objet = édition */
+  student: any | null;
+  onSaved: () => void;
 }) {
   const { t } = useI18n();
   const [codeMassar, setCodeMassar] = useState("");
@@ -465,6 +482,22 @@ function AddStudentDialog({
   const [groupId, setGroupId] = useState("");
   const [saving, setSaving] = useState(false);
 
+  const editing = !!student;
+
+  // Pré-remplissage à l'ouverture (édition)
+  useEffect(() => {
+    if (open) {
+      setCodeMassar(student?.codeMassar ?? "");
+      setFirstName(student?.firstName ?? "");
+      setLastName(student?.lastName ?? "");
+      setFirstNameAr(student?.firstNameAr ?? "");
+      setLastNameAr(student?.lastNameAr ?? "");
+      setParentPhone(student?.parentPhone ?? "");
+      setClasseId(student?.classeId ?? "");
+      setGroupId(student?.groupId ?? "");
+    }
+  }, [open, student]);
+
   const selectedClass = classes.find((c) => c.id === classeId);
   const groups = selectedClass?.groups ?? [];
 
@@ -472,27 +505,25 @@ function AddStudentDialog({
     e.preventDefault();
     setSaving(true);
     try {
-      await apiPost("/api/students", {
+      const payload = {
         codeMassar,
         firstName,
         lastName,
         classeId,
         groupId: groupId || null,
-        firstNameAr: firstNameAr || undefined,
-        lastNameAr: lastNameAr || undefined,
-        parentPhone: parentPhone || undefined,
-      });
-      toast.success(t.created);
-      setCodeMassar("");
-      setFirstName("");
-      setLastName("");
-      setFirstNameAr("");
-      setLastNameAr("");
-      setParentPhone("");
-      setClasseId("");
-      setGroupId("");
+        firstNameAr: firstNameAr || null,
+        lastNameAr: lastNameAr || null,
+        parentPhone: parentPhone || null,
+      };
+      if (editing) {
+        await apiPatch(`/api/students/${student.id}`, payload);
+        toast.success(t.studentUpdated);
+      } else {
+        await apiPost("/api/students", payload);
+        toast.success(t.created);
+      }
       onOpenChange(false);
-      onAdded();
+      onSaved();
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -505,8 +536,12 @@ function AddStudentDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-primary" />
-            {t.add}
+            {editing ? (
+              <Pencil className="h-5 w-5 text-primary" />
+            ) : (
+              <Users className="h-5 w-5 text-primary" />
+            )}
+            {editing ? t.editStudent : t.add}
           </DialogTitle>
           <DialogDescription>{t.studentList}</DialogDescription>
         </DialogHeader>

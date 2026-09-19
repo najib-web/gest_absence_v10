@@ -23,7 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2, Send, CheckCircle2, ShieldAlert, Search, Filter, BellOff } from "lucide-react";
+import { Loader2, Send, CheckCircle2, ShieldAlert, Search, Filter, BellOff, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -36,7 +36,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { formatDate } from "@/lib/hooks";
 import { useAttendanceMonitor } from "@/hooks/use-attendance-monitor";
-import { slotRangeLabel } from "@/lib/schedule";
+import { slotRangeLabel, formatSeanceDateShort } from "@/lib/schedule";
 
 export function AdminSupervision() {
   const { t, locale } = useI18n();
@@ -46,7 +46,23 @@ export function AdminSupervision() {
   const [justifyTarget, setJustifyTarget] = useState<any | null>(null);
 
   // Appels non faits : séances commencées depuis plus de 5 min sans enregistrement
-  const { missed } = useAttendanceMonitor({ enabled: true });
+  // (disparaissent automatiquement dès l'appel enregistré, ou via suppression
+  // manuelle par le surveillant — bouton X)
+  const { missed, dismiss } = useAttendanceMonitor({ enabled: true });
+  const [dismissingKey, setDismissingKey] = useState<string | null>(null);
+
+  async function handleDismiss(m: (typeof missed)[number]) {
+    if (dismissingKey) return;
+    setDismissingKey(m.key);
+    try {
+      await dismiss(m);
+      toast.success(t.notificationDismissed);
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setDismissingKey(null);
+    }
+  }
 
   const filterParam = filter === "oriented" ? "oriented=true" : filter === "justified" ? "justified=true" : filter === "unjustified" ? "unjustified=true" : "";
   const { data: absencesData, loading, refresh } = useFetch<{ absences: any[] }>(
@@ -126,13 +142,27 @@ export function AdminSupervision() {
                   </div>
                 </div>
                 <Badge variant="outline" className="font-mono">
-                  {slotRangeLabel(m.startMin, m.endMin)}
+                  {formatSeanceDateShort(new Date(), locale)} · {slotRangeLabel(m.startMin, m.endMin)}
                 </Badge>
                 <Badge variant={m.slotOngoing ? "default" : "secondary"} className={m.slotOngoing ? "bg-red-600" : ""}>
                   {m.slotOngoing
                     ? t.missedCallLate.replace("{mins}", String(Math.max(m.minutesLate, 5)))
                     : t.missedCallNow}
                 </Badge>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+                  title={t.dismissNotification}
+                  disabled={dismissingKey === m.key}
+                  onClick={() => handleDismiss(m)}
+                >
+                  {dismissingKey === m.key ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <X className="h-4 w-4" />
+                  )}
+                </Button>
               </div>
             ))}
           </CardContent>

@@ -4,20 +4,35 @@ import { getCurrentUser, isStaff } from "@/lib/auth";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser(req);
-  if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+  if (!user || !isStaff(user.role)) {
+    return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+  }
   const { id } = await params;
   try {
     const body = await req.json();
-    const { firstName, lastName, classeId, groupId, codeMassar } = body;
+    const {
+      firstName,
+      lastName,
+      classeId,
+      groupId,
+      codeMassar,
+      firstNameAr,
+      lastNameAr,
+      parentPhone,
+    } = body;
     const student = await db.student.update({
       where: { id },
       data: {
-        ...(firstName !== undefined ? { firstName } : {}),
-        ...(lastName !== undefined ? { lastName } : {}),
+        ...(firstName !== undefined ? { firstName: firstName.trim() } : {}),
+        ...(lastName !== undefined ? { lastName: lastName.trim() } : {}),
         ...(classeId !== undefined ? { classeId } : {}),
         ...(groupId !== undefined ? { groupId: groupId || null } : {}),
-        ...(codeMassar !== undefined ? { codeMassar: codeMassar.toUpperCase() } : {}),
+        ...(codeMassar !== undefined ? { codeMassar: codeMassar.toUpperCase().trim() } : {}),
+        ...(firstNameAr !== undefined ? { firstNameAr: firstNameAr || null } : {}),
+        ...(lastNameAr !== undefined ? { lastNameAr: lastNameAr || null } : {}),
+        ...(parentPhone !== undefined ? { parentPhone: parentPhone || null } : {}),
       },
+      include: { classe: true, groupe: true },
     });
     return NextResponse.json({ student });
   } catch (e: any) {

@@ -9,7 +9,7 @@
 // Tous les calculs se font côté client avec l'horloge locale du navigateur
 // (cohérent avec findCurrentSlot / useNow) — aucun problème de fuseau.
 
-import { getSchoolDayOfWeek, getMinutesOfDay } from "@/lib/schedule";
+import { getSchoolDayOfWeek, getMinutesOfDay, localDateKey } from "@/lib/schedule";
 
 export const ATTENDANCE_GRACE_MIN = 5; // rappel 5 min après le début de la séance
 
@@ -39,7 +39,7 @@ export interface SessionLikeAlert {
 }
 
 export interface MissedCall {
-  /** Clé stable de l'occurrence (slot + jour) pour la déduplication des toasts */
+  /** Clé stable de l'occurrence (slot + jour local YYYY-MM-DD) pour la déduplication des toasts */
   key: string;
   slotId: string;
   teacherId: string;
@@ -118,7 +118,7 @@ export function computeMissedCalls(
     const k = matchKey(slot.teacherId, slot.classeId, slot.groupId ?? null, slot.subject);
     if (done.has(k)) continue;
     missed.push({
-      key: `${slot.id}|${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`,
+      key: `${slot.id}|${localDateKey(now)}`,
       slotId: slot.id,
       teacherId: slot.teacherId,
       teacherName: teacherDisplayName(slot),

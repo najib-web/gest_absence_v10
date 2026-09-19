@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/lib/i18n-context";
 import { useFetch, apiPost, apiDelete, apiPatch } from "@/lib/hooks";
 import { SUBJECTS } from "@/lib/subjects";
@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Loader2, BookOpen, UserPlus, CalendarClock, Layers, Upload, Download, FileSpreadsheet, CheckCircle2, XCircle, KeyRound, Phone } from "lucide-react";
+import { Plus, Trash2, Loader2, BookOpen, UserPlus, UserPen, CalendarClock, Layers, Upload, Download, FileSpreadsheet, CheckCircle2, XCircle, KeyRound, Phone, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -61,6 +61,9 @@ export function AdminTeachers() {
 
   const [teacherOpen, setTeacherOpen] = useState(false);
   const [serviceOpen, setServiceOpen] = useState(false);
+  // null = création, objet = édition
+  const [editTeacher, setEditTeacher] = useState<any | null>(null);
+  const [editService, setEditService] = useState<any | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [previewRows, setPreviewRows] = useState<TeacherPreviewRow[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -161,6 +164,17 @@ export function AdminTeachers() {
     }
   }
 
+  async function deleteTeacher(id: string) {
+    if (!confirm(t.confirmDeleteTeacher)) return;
+    try {
+      await apiDelete(`/api/teachers/${id}`);
+      toast.success(t.deleted);
+      refresh();
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -186,11 +200,11 @@ export function AdminTeachers() {
             {uploading ? <Loader2 className="h-4 w-4 me-2 animate-spin" /> : <Upload className="h-4 w-4 me-2" />}
             {t.importTeachers}
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setTeacherOpen(true)}>
+          <Button variant="outline" size="sm" onClick={() => { setEditTeacher(null); setTeacherOpen(true); }}>
             <UserPlus className="h-4 w-4 me-2" />
             {t.createTeacher}
           </Button>
-          <Button size="sm" onClick={() => setServiceOpen(true)} disabled={teachers.length === 0 || classes.length === 0}>
+          <Button size="sm" onClick={() => { setEditService(null); setServiceOpen(true); }} disabled={teachers.length === 0 || classes.length === 0}>
             <Plus className="h-4 w-4 me-2" />
             {t.assignService}
           </Button>
@@ -272,21 +286,42 @@ export function AdminTeachers() {
                       <TableCell className="text-center">{tc.services.length}</TableCell>
                       <TableCell className="text-center">{tc._count.sessions}</TableCell>
                       <TableCell className="text-end">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          title={t.resetPassword}
-                          onClick={() => {
-                            setPwdTarget({
-                              id: tc.userId,
-                              name: `${tc.lastName} ${tc.firstName}`,
-                              email: tc.user.email,
-                            });
-                            setNewPassword("");
-                          }}
-                        >
-                          <KeyRound className="h-4 w-4" />
-                        </Button>
+                        <div className="flex gap-1 justify-end">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            title={t.edit}
+                            onClick={() => { setEditTeacher(tc); setTeacherOpen(true); }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            title={t.resetPassword}
+                            onClick={() => {
+                              setPwdTarget({
+                                id: tc.userId,
+                                name: `${tc.lastName} ${tc.firstName}`,
+                                email: tc.user.email,
+                              });
+                              setNewPassword("");
+                            }}
+                          >
+                            <KeyRound className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive"
+                            title={t.delete}
+                            onClick={() => deleteTeacher(tc.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -352,14 +387,25 @@ export function AdminTeachers() {
                         </span>
                       </TableCell>
                       <TableCell className="text-end">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive"
-                          onClick={() => deleteService(s.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex gap-1 justify-end">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            title={t.edit}
+                            onClick={() => { setEditService(s); setServiceOpen(true); }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive"
+                            onClick={() => deleteService(s.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -407,7 +453,7 @@ export function AdminTeachers() {
         </DialogContent>
       </Dialog>
 
-      <TeacherDialog open={teacherOpen} onOpenChange={setTeacherOpen} onSaved={() => refresh()} subjects={SUBJECTS} />
+      <TeacherDialog open={teacherOpen} onOpenChange={setTeacherOpen} onSaved={() => refresh()} subjects={SUBJECTS} teacher={editTeacher} />
       <ServiceDialog
         open={serviceOpen}
         onOpenChange={setServiceOpen}
@@ -415,6 +461,7 @@ export function AdminTeachers() {
         classes={classes}
         onSaved={() => refreshServices()}
         subjects={SUBJECTS}
+        service={editService}
       />
 
       {/* Import Teachers Preview Modal */}
@@ -493,7 +540,7 @@ export function AdminTeachers() {
   );
 }
 
-function TeacherDialog({ open, onOpenChange, onSaved, subjects }: { open: boolean; onOpenChange: (v: boolean) => void; onSaved: () => void; subjects: typeof SUBJECTS }) {
+function TeacherDialog({ open, onOpenChange, onSaved, subjects, teacher }: { open: boolean; onOpenChange: (v: boolean) => void; onSaved: () => void; subjects: typeof SUBJECTS; teacher: any | null }) {
   const { t } = useI18n();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -507,26 +554,57 @@ function TeacherDialog({ open, onOpenChange, onSaved, subjects }: { open: boolea
   const [password, setPassword] = useState("");
   const [saving, setSaving] = useState(false);
 
+  const editing = !!teacher;
+
+  // Pré-remplissage à l'ouverture (édition)
+  useEffect(() => {
+    if (open) {
+      setFirstName(teacher?.firstName ?? "");
+      setLastName(teacher?.lastName ?? "");
+      setFirstNameAr(teacher?.firstNameAr ?? "");
+      setLastNameAr(teacher?.lastNameAr ?? "");
+      setPpr(teacher?.ppr ?? "");
+      setPhone(teacher?.phone ?? "");
+      setMatiere(teacher?.matiere ?? "");
+      setMatiereAr(teacher?.matiereAr ?? "");
+      setEmail(teacher?.user?.email ?? "");
+      setPassword("");
+    }
+  }, [open, teacher]);
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     try {
       const subj = subjects.find((s) => s.fr === matiere);
-      await apiPost("/api/teachers", {
-        firstName,
-        lastName,
-        matiere,
-        matiereAr: subj?.ar || matiereAr,
-        email,
-        password,
-        ppr: ppr || undefined,
-        firstNameAr: firstNameAr || undefined,
-        lastNameAr: lastNameAr || undefined,
-        phone: phone || undefined,
-      });
-      toast.success(t.created);
-      setFirstName(""); setLastName(""); setFirstNameAr(""); setLastNameAr(""); setPpr(""); setPhone("");
-      setMatiere(""); setMatiereAr(""); setEmail(""); setPassword("");
+      if (editing) {
+        await apiPatch(`/api/teachers/${teacher.id}`, {
+          firstName,
+          lastName,
+          matiere,
+          matiereAr: subj?.ar || matiereAr || null,
+          ppr: ppr || null,
+          firstNameAr: firstNameAr || null,
+          lastNameAr: lastNameAr || null,
+          phone: phone || null,
+          email,
+        });
+        toast.success(t.teacherUpdated);
+      } else {
+        await apiPost("/api/teachers", {
+          firstName,
+          lastName,
+          matiere,
+          matiereAr: subj?.ar || matiereAr,
+          email,
+          password,
+          ppr: ppr || undefined,
+          firstNameAr: firstNameAr || undefined,
+          lastNameAr: lastNameAr || undefined,
+          phone: phone || undefined,
+        });
+        toast.success(t.created);
+      }
       onOpenChange(false);
       onSaved();
     } catch (e) {
@@ -541,8 +619,12 @@ function TeacherDialog({ open, onOpenChange, onSaved, subjects }: { open: boolea
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <UserPlus className="h-5 w-5 text-primary" />
-            {t.createTeacher}
+            {editing ? (
+              <UserPen className="h-5 w-5 text-primary" />
+            ) : (
+              <UserPlus className="h-5 w-5 text-primary" />
+            )}
+            {editing ? t.editTeacher : t.createTeacher}
           </DialogTitle>
           <DialogDescription>{t.teachers}</DialogDescription>
         </DialogHeader>
@@ -597,7 +679,16 @@ function TeacherDialog({ open, onOpenChange, onSaved, subjects }: { open: boolea
             </div>
             <div className="space-y-2">
               <Label htmlFor="tp">{t.password}</Label>
-              <Input id="tp" type="text" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••" required />
+              <Input
+                id="tp"
+                type="text"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={editing ? t.passwordKeepHint : "••••••"}
+                required={!editing}
+                minLength={editing ? 0 : 6}
+                disabled={editing}
+              />
             </div>
           </div>
           <DialogFooter>
@@ -613,7 +704,7 @@ function TeacherDialog({ open, onOpenChange, onSaved, subjects }: { open: boolea
   );
 }
 
-function ServiceDialog({ open, onOpenChange, teachers, classes, onSaved, subjects }: { open: boolean; onOpenChange: (v: boolean) => void; teachers: any[]; classes: any[]; onSaved: () => void; subjects: typeof SUBJECTS }) {
+function ServiceDialog({ open, onOpenChange, teachers, classes, onSaved, subjects, service }: { open: boolean; onOpenChange: (v: boolean) => void; teachers: any[]; classes: any[]; onSaved: () => void; subjects: typeof SUBJECTS; service: any | null }) {
   const { t } = useI18n();
   const [teacherId, setTeacherId] = useState("");
   const [classeId, setClasseId] = useState("");
@@ -621,6 +712,19 @@ function ServiceDialog({ open, onOpenChange, teachers, classes, onSaved, subject
   const [subject, setSubject] = useState("");
   const [hours, setHours] = useState("2");
   const [saving, setSaving] = useState(false);
+
+  const editing = !!service;
+
+  // Pré-remplissage à l'ouverture (édition)
+  useEffect(() => {
+    if (open) {
+      setTeacherId(service?.teacherId ?? "");
+      setClasseId(service?.classeId ?? "");
+      setGroupId(service?.groupId ?? "");
+      setSubject(service?.subject ?? "");
+      setHours(service?.hoursPerWeek != null ? String(service.hoursPerWeek) : "2");
+    }
+  }, [open, service]);
 
   const selectedClass = classes.find((c) => c.id === classeId);
   const groups = selectedClass?.groups ?? [];
@@ -630,16 +734,21 @@ function ServiceDialog({ open, onOpenChange, teachers, classes, onSaved, subject
     setSaving(true);
     try {
       const subj = subjects.find((s) => s.fr === subject);
-      await apiPost("/api/service-tables", {
+      const payload = {
         teacherId,
         classeId,
         groupId: groupId || null,
         subject,
         subjectAr: subj?.ar || null,
         hoursPerWeek: parseInt(hours) || 2,
-      });
-      toast.success(t.created);
-      setTeacherId(""); setClasseId(""); setGroupId(""); setSubject(""); setHours("2");
+      };
+      if (editing) {
+        await apiPatch(`/api/service-tables/${service.id}`, payload);
+        toast.success(t.serviceUpdated);
+      } else {
+        await apiPost("/api/service-tables", payload);
+        toast.success(t.created);
+      }
       onOpenChange(false);
       onSaved();
     } catch (e) {
@@ -654,8 +763,12 @@ function ServiceDialog({ open, onOpenChange, teachers, classes, onSaved, subject
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Layers className="h-5 w-5 text-primary" />
-            {t.assignService}
+            {editing ? (
+              <Pencil className="h-5 w-5 text-primary" />
+            ) : (
+              <Layers className="h-5 w-5 text-primary" />
+            )}
+            {editing ? t.editService : t.assignService}
           </DialogTitle>
           <DialogDescription>{t.serviceTablesDesc}</DialogDescription>
         </DialogHeader>

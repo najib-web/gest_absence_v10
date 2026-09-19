@@ -14,7 +14,7 @@ import { AbsenceHistory } from "@/components/absence-history";
 import { TeacherProfile } from "@/components/teacher/teacher-profile";
 import { useAttendanceMonitor } from "@/hooks/use-attendance-monitor";
 import { playReminderBeep } from "@/lib/sound";
-import { slotRangeLabel } from "@/lib/schedule";
+import { slotRangeLabel, formatSeanceDate } from "@/lib/schedule";
 import type { MissedCall } from "@/lib/attendance-alerts";
 
 export function TeacherDashboard({ user, onLogout }: { user: SessionUser; onLogout: () => void }) {
@@ -32,10 +32,13 @@ export function TeacherDashboard({ user, onLogout }: { user: SessionUser; onLogo
         playReminderBeep(2);
         const seance = `${m.classeCode}${m.groupeCode ? ` · ${m.groupeCode}` : ""} — ${
           locale === "ar" && m.subjectAr ? m.subjectAr : m.subject
-        } (${slotRangeLabel(m.startMin, m.endMin)})`;
+        }`;
+        const now = new Date();
         toast.warning(t.callReminderTitle, {
           description: t.callReminderDesc
             .replace("{seance}", seance)
+            .replace("{date}", formatSeanceDate(now, locale))
+            .replace("{time}", slotRangeLabel(m.startMin, m.endMin))
             .replace("{mins}", String(Math.max(m.minutesLate, 5))),
           duration: 12000,
         });

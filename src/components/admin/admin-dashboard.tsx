@@ -27,7 +27,7 @@ import { AdminAccounts } from "@/components/admin/admin-accounts";
 import { AdminData } from "@/components/admin/admin-data";
 import { AbsenceHistory } from "@/components/absence-history";
 import { useAttendanceMonitor } from "@/hooks/use-attendance-monitor";
-import { slotRangeLabel } from "@/lib/schedule";
+import { slotRangeLabel, formatSeanceDate } from "@/lib/schedule";
 import type { MissedCall } from "@/lib/attendance-alerts";
 
 export function AdminDashboard({ user, onLogout }: { user: SessionUser; onLogout: () => void }) {
@@ -40,9 +40,15 @@ export function AdminDashboard({ user, onLogout }: { user: SessionUser; onLogout
     enabled: user.role === "SURVEILLANT" || user.role === "DIRECTEUR",
     onNewAlert: useCallback(
       (m: MissedCall) => {
-        const detail = `${m.classeCode}${m.groupeCode ? ` · ${m.groupeCode}` : ""} — ${
-          locale === "ar" && m.subjectAr ? m.subjectAr : m.subject
-        } · ${slotRangeLabel(m.startMin, m.endMin)}`;
+        const detail = t.missedCallDesc
+          .replace("{date}", formatSeanceDate(new Date(), locale))
+          .replace("{time}", slotRangeLabel(m.startMin, m.endMin))
+          .replace(
+            "{classe}",
+            `${m.classeCode}${m.groupeCode ? ` · ${m.groupeCode}` : ""} — ${
+              locale === "ar" && m.subjectAr ? m.subjectAr : m.subject
+            }`
+          );
         toast.warning(t.missedCallToast.replace("{teacher}", m.teacherName || t.teacher), {
           description: detail,
           duration: 12000,

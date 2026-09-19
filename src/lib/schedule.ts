@@ -96,6 +96,43 @@ export function getMinutesOfDay(d: Date = new Date()): number {
   return d.getHours() * 60 + d.getMinutes();
 }
 
+/**
+ * Clé locale du jour au format "YYYY-MM-DD" (padding complet).
+ * Sert d'identifiant stable pour les occurrences de séance
+ * (suppression manuelle des notifications d'appel non fait).
+ */
+export function localDateKey(d: Date = new Date()): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/**
+ * Date d'une séance formatée selon la locale, ex :
+ * FR « samedi 20 septembre 2026 » — AR « السبت 20 سبتمبر 2026 ».
+ */
+export function formatSeanceDate(d: Date = new Date(), locale: string = "fr"): string {
+  return d.toLocaleDateString(locale === "ar" ? "ar-MA" : "fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+/**
+ * Date de séance compacte (badges, listes), ex :
+ * FR « sam. 20 sept. » — AR « السبت 20 سبتمبر ».
+ */
+export function formatSeanceDateShort(d: Date = new Date(), locale: string = "fr"): string {
+  return d.toLocaleDateString(locale === "ar" ? "ar-MA" : "fr-FR", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
+}
+
 export interface SlotLike {
   dayOfWeek: number;
   startMin: number;
