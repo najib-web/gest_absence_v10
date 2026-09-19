@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, isStaff } from "@/lib/auth";
 
 const THRESHOLD_KEY = "absenceThreshold";
 const DEFAULT_THRESHOLD = 3;
@@ -22,7 +22,7 @@ export async function GET(req: Request) {
 // PUT /api/settings — update settings (surveillant only)
 export async function PUT(req: NextRequest) {
   const user = await getCurrentUser(req);
-  if (!user || user.role !== "SURVEILLANT") {
+  if (!user || !isStaff(user.role)) {
     return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
   }
 

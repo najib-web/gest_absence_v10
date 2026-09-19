@@ -72,6 +72,12 @@ export async function authenticateUser(
   };
 }
 
+// Rôles autorisés à gérer les données de l'établissement :
+// tout ce que le Surveillant peut faire, le Directeur peut aussi le faire.
+export function isStaff(role: string): boolean {
+  return role === "SURVEILLANT" || role === "DIRECTEUR";
+}
+
 let defaultAccountsEnsured = false;
 
 // Crée les comptes de base (directeur, surveillant) s'ils n'existent pas.
@@ -106,6 +112,12 @@ export async function ensureDefaultAccounts(): Promise<void> {
     // DB indisponible au boot : on retentera au prochain appel.
     defaultAccountsEnsured = false;
   }
+}
+
+// Ré-arme le garde-fou d'ensureDefaultAccounts — appelé après un vidage total
+// de la base afin que les comptes par défaut soient recréés au prochain login.
+export function resetDefaultAccountsFlag(): void {
+  defaultAccountsEnsured = false;
 }
 
 // Helper used by API routes to get the current user from the request cookies

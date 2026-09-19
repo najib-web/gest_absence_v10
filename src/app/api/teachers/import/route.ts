@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, isStaff } from "@/lib/auth";
 import { parseTeachersExcel, deaccent } from "@/lib/excel";
 import { subjectArFromFr } from "@/lib/subjects";
 
@@ -30,7 +30,7 @@ async function findFreeEmail(base: string): Promise<string> {
 // Step 1: upload + parse, returns preview rows (no DB write yet)
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser(req);
-  if (!user || user.role !== "SURVEILLANT") {
+  if (!user || !isStaff(user.role)) {
     return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
   }
   try {

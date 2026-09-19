@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, isStaff } from "@/lib/auth";
 import { parseServiceFile, deaccent } from "@/lib/excel";
 import { isValidTimeSlot, DAY_NAMES, minutesToLabel } from "@/lib/schedule";
 import { subjectArFromFr } from "@/lib/subjects";
@@ -47,7 +47,7 @@ function findOverlap(list: Interval[] | undefined, start: number, end: number): 
 // Step 1: upload + parse + resolve + conflict detection (preview mode writes nothing)
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser(req);
-  if (!user || user.role !== "SURVEILLANT") {
+  if (!user || !isStaff(user.role)) {
     return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
   }
   try {
