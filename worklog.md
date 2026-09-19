@@ -45,3 +45,28 @@ Stage Summary:
 - VERDICT : le projet est 100 % fonctionnel — lint OK, TS OK, build OK, Neon connecté, 3 rôles testés E2E, PWA complète servie, PDF A4 exact, toutes les fonctionnalités récentes (PPR/noms arabes/téléphones, appel parent au seuil, rapport A4 10 pt avec 6 modèles, grille Excel/CSV + synchro tables de service) vérifiées à l'écran et sur fichiers.
 - Une seule correction de données appliquée : mot de passe du compte démo a.bennani@edu.ma réinitialisé à « enseignant123 » (côté données, pas de changement de code).
 - Rappels maintenus : réinitialiser le mot de passe Neon (exposé dans le chat), changer les mots de passe par défaut avant production, DATABASE_URL poolée chez Vercel.
+
+---
+Task ID: 12
+Agent: Super Z (main agent)
+Task: Ajouter au Surveillant et au Directeur l'option de vider une table ou la totalité de la base de données.
+
+Work Log:
+- Restauration environnement : .env.neon reperdu entre les sessions (sandbox) → recréé avec la chaîne Neon poolée ; serveur redémarré.
+- Découverte : reliquats non-commités du 11/09 (isSupervisor manquant, admin-database.tsx, api/database/reset, api/templates, api/service-slots/export, api/admin/accounts « ADMIN », director/, pwa-install, register-sw, manifest.ts, offline/) qui cassaient tsc (57 erreurs). Analyse des dépendances : tous orphelins/supplantés (signature → PATCH /api/teachers/me ; mots de passe → /api/users ; export → client ; manifest/offline → public/) → suppression ; tsc 0 erreur.
+- Bug de rôle corrigé au passage : les routes de mutation n'acceptaient que SURVEILLANT → le Directeur (role DIRECTEUR) recevait 403 sur toutes les actions du dashboard. Helper isStaff() dans src/lib/auth.ts + remplacement automatique (scripts/fix-role-checks.py) dans 18 routes API (teachers, students, classes, groups, niveaux, settings, sessions, absences, orientations, service-slots, service-tables). Vérifié : PUT settings Directeur 200 (avant : 403).
+- NOUVEAU : API /api/admin/data (src/app/api/admin/data/route.ts) — GET compteurs des 11 tables ; POST {scope} pour vider une table (absences, orientations, sessions, serviceSlots, serviceTables, students, teachers→comptes ENSEIGNANT seulement, groups, classes, niveaux) ou {scope:"all", confirm:"VIDER"} pour tout vider. Accès isStaff (SURVEILLANT + DIRECTEUR) ; enseignant → 403 testé ; mauvaise confirmation/scope inconnu → 400.
+- FIX PgBouncer : $transaction interactive échoue via Neon poolé (« Transaction not found ») → purge totale par TRUNCATE ... CASCADE unique (atomique en PostgreSQL, cascade géré par PostgreSQL), compteurs relevés avant purge.
+- FIX recréation comptes : après vidage total, le garde-fou defaultAccountsEnsured empêchait la recréation → resetDefaultAccountsFlag() exporté de auth.ts et appelé après purge ; re-login directeur/surveillant testés 200 (comptes recréés).
+- NOUVEAU : composant src/components/admin/admin-data.tsx — onglet « Gestion des Données » (Database icon) dans admin-dashboard pour les deux rôles : grille de 10 cartes de tables (icône, compteur, bouton Vider rouge), AlertDialog de confirmation par table avec avertissements de cascade spécifiques (classes/niveaux : « données liées » ; enseignants : « comptes enseignants, Surveillant/Directeur conservés »), Zone dangereuse « Tout vider » avec confirmation tapée VIDER (bouton désactivé sinon), toast récapitulatif (compteur total), rechargement des compteurs, déconnexion auto après purge totale.
+- i18n : ~30 clés FR/AR (dataManagement, dataTablesTitle, dataDangerZone, dataAllTitle/Desc, dataTypeConfirm, dataConfirm*, dataCascadeWarn*, dataDeletedToast, dataAllDeletedToast, dataTable* pour les 10 tables).
+- Scripts : scripts/db-backup.ts (backup/restore JSON de la base, sans $transaction pour PgBouncer) + sauvegarde db-backup-20260919.json (104 enregistrements).
+- Tests : API E2E curl (counts, 403 enseignant, purge orientations=7, validations 400, purge totale → tout à 0, re-login → comptes recréés, restore → compteurs identiques) ; navigateur E2E FR (onglet actif, grille 10 tables avec compteurs, dialog confirmation, toast « Table vidée — 7 enregistrement(s) supprimé(s) », compteur 0 live, dialog « Tout vider » + badge « Tapez VIDER ») et AR RTL complet (إدارة البيانات, إفراغ) ; restore des données de démo ensuite.
+- Nettoyage lint : suppression scripts orphelins update-templates.js (require()) + directives eslint-disable inutiles (db-export-sqlite, db-import-neon) → lint 0 erreur.
+- Build : next build OK (28 routes, /api/admin/data présente). Serveur relancé, login 200.
+- Commit d463bc5 : feature + isStaff + admin-data + api/admin/data + director/accounts (ex-non-trackés requis par admin-accounts, désormais dans git — important pour Vercel) + scripts/db-backup.ts.
+
+Stage Summary:
+- Livré : onglet « Gestion des Données » pour Surveillant ET Directeur — vider 10 tables individuellement (avec avertissements de cascade et compteur d'enregistrements) ou toute la base (double confirmation tapée « VIDER », purge atomique TRUNCATE CASCADE, déconnexion automatique, comptes par défaut recréés au login suivant).
+- Bonus corrective : le rôle Directeur n'était qu'un spectateur (403 sur toutes les mutations) → il peut désormais tout faire comme le Surveillant, plus l'onglet Comptes.
+- Données de démo intactes (backup/restore prouvé). Lint 0, tsc 0, build OK. Rappel : réinitialiser le mot de passe Neon, changer les mots de passe par défaut avant production.
