@@ -17,8 +17,19 @@ export interface SessionUser {
   id: string;
   email: string;
   name: string;
-  role: "DIRECTEUR" | "SURVEILLANT" | "ENSEIGNANT";
+  role: "SUPERADMIN" | "DIRECTEUR" | "SURVEILLANT" | "ENSEIGNANT";
   teacherId?: string;
+  etablissementId?: string;
+  etablissement?: {
+    id: string;
+    code: string;
+    nameFr: string;
+    nameAr: string;
+    arefFr: string;
+    arefAr: string;
+    dpFr: string;
+    dpAr: string;
+  } | null;
 }
 
 export function AppShell({
@@ -46,12 +57,21 @@ export function AppShell({
   }
 
   const roleLabel =
-    user.role === "DIRECTEUR"
-      ? t.directeur
-      : user.role === "SURVEILLANT"
-        ? t.surveillant
-        : t.enseignant;
-  const roleIcon = user.role === "DIRECTEUR" ? "🎓" : user.role === "SURVEILLANT" ? "🛡️" : "📚";
+    user.role === "SUPERADMIN"
+      ? t.superAdmin
+      : user.role === "DIRECTEUR"
+        ? t.directeur
+        : user.role === "SURVEILLANT"
+          ? t.surveillant
+          : t.enseignant;
+  const roleIcon =
+    user.role === "SUPERADMIN"
+      ? "🏛️"
+      : user.role === "DIRECTEUR"
+        ? "🎓"
+        : user.role === "SURVEILLANT"
+          ? "🛡️"
+          : "📚";
 
   return (
     <div className="min-h-screen flex flex-col bg-muted/20">
@@ -74,7 +94,11 @@ export function AppShell({
               <div className="hidden sm:block">
                 <div className="font-bold text-sm leading-tight">{t.appName}</div>
                 <div className="text-xs text-muted-foreground leading-tight">
-                  {user.role === "ENSEIGNANT" ? t.teacherDashboard : t.adminDashboard}
+                  {user.role === "ENSEIGNANT"
+                    ? t.teacherDashboard
+                    : user.role === "SUPERADMIN"
+                      ? t.superAdmin
+                      : t.adminDashboard}
                 </div>
               </div>
             </div>

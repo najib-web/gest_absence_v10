@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser, isStaff } from "@/lib/auth";
+import { getCurrentUser, isStaff, resolveEtablissementId } from "@/lib/auth";
 import { parseStudentExcel, deaccent } from "@/lib/excel";
 
 /** Derive a standardized niveau (code + FR/AR labels) from a free-form label or a class code. */
@@ -38,6 +38,9 @@ export async function POST(req: NextRequest) {
   if (!user || !isStaff(user.role)) {
     return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
   }
+  // Héritage : les élèves importés par le directeur (ou son staff) sont
+  // rattachés à son établissement (AREF + DP).
+  const etabId = await resolveEtablissementId(user);
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
@@ -58,8 +61,11 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // Resolve classes by code (case/accent-insensitive)
-    const classes = await db.classe.findMany({ include: { niveau: true, groups: true } });
+    // Resolve classes by code (case/accent-insensitive) — dans l'établissement courant
+    const classes = await db.classe.findMany({
+      where: etabId ? { etablissementId: etabId } : {},
+      include: { niveau: true, groups: true },
+    });
     const classByCode = new Map<string, typeof classes[number]>();
     for (const c of classes) {
       classByCode.set(deaccent(c.code), c);
@@ -148,9 +154,12 @@ export async function POST(req: NextRequest) {
         if (classeCache.has(key)) {
           classeId = classeCache.get(key)?.id ?? null;
         } else {
-          // Check again in DB (may exist with unusual spacing)
+          // Check again in DB (may exist with unusual spacing) — établissement courant
           const existing = await db.classe.findFirst({
-            where: { OR: [{ code: { equals: code } }, { code: { equals: key } }] },
+            where: {
+              ...(etabId ? { etablissementId: etabId } : {}),
+              OR: [{ code: { equals: code } }, { code: { equals: key } }],
+            },
             select: { id: true },
           });
           if (existing) {
@@ -164,6 +173,7 @@ export async function POST(req: NextRequest) {
                 labelFr: code,
                 labelAr: code,
                 niveauId: niveau.id,
+                ...(etabId ? { etablissementId: etabId } : {}),
               },
               select: { id: true },
             });
@@ -198,6 +208,7 @@ export async function POST(req: NextRequest) {
             firstNameAr: r.firstNameAr || null,
             lastNameAr: r.lastNameAr || null,
             parentPhone: r.parentPhone || null,
+            ...(etabId ? { etablissementId: etabId } : {}),
           },
         });
         inserted++;

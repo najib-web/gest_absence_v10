@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, resolveEtablissementId } from "@/lib/auth";
 
 export async function GET(req: Request) {
   const user = await getCurrentUser(req);
@@ -12,10 +12,13 @@ export async function GET(req: Request) {
   const from = url.searchParams.get("from");
   const to = url.searchParams.get("to");
 
+  // Isolation par établissement (via l'enseignant de la séance)
+  const etabId = await resolveEtablissementId(user);
   const sessions = await db.session.findMany({
     where: {
       ...(teacherId ? { teacherId } : {}),
       ...(classeId ? { classeId } : {}),
+      ...(etabId ? { teacher: { etablissementId: etabId } } : {}),
       ...(from || to
         ? {
             date: {

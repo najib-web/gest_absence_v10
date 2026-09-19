@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, resolveEtablissementId } from "@/lib/auth";
 
 // GET /api/students/absence-counts — per-student absence statistics vs threshold
 // Query: ?classeId=... (optional)
@@ -13,8 +13,13 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const classeId = url.searchParams.get("classeId");
 
+  // Isolation par établissement
+  const etabId = await resolveEtablissementId(user);
   const students = await db.student.findMany({
-    where: classeId ? { classeId } : undefined,
+    where: {
+      ...(classeId ? { classeId } : {}),
+      ...(etabId ? { etablissementId: etabId } : {}),
+    },
     include: { classe: true, groupe: true },
     orderBy: [{ classeId: "asc" }, { lastName: "asc" }],
   });

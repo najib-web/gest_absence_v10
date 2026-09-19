@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Providers } from "@/components/providers";
 import { LoginView } from "@/components/login-view";
 import { AdminDashboard } from "@/components/admin/admin-dashboard";
+import { SuperAdminDashboard } from "@/components/admin/super-admin";
 import { TeacherDashboard } from "@/components/teacher/teacher-dashboard";
 import { Loader2, GraduationCap } from "lucide-react";
 import { useI18n } from "@/lib/i18n-context";
@@ -14,8 +15,9 @@ interface SessionUser {
   id: string;
   email: string;
   name: string;
-  role: "DIRECTEUR" | "SURVEILLANT" | "ENSEIGNANT";
+  role: "SUPERADMIN" | "DIRECTEUR" | "SURVEILLANT" | "ENSEIGNANT";
   teacherId?: string;
+  etablissementId?: string;
 }
 
 function PageContent() {
@@ -49,6 +51,10 @@ function PageContent() {
 
   if (!user) {
     return <LoginView onLoggedIn={(u) => setUser(u)} />;
+  }
+
+  if (user.role === "SUPERADMIN") {
+    return <SuperAdminDashboard user={user} onLogout={() => setUser(null)} />;
   }
 
   if (user.role === "ENSEIGNANT") {

@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser, isStaff } from "@/lib/auth";
+import { getCurrentUser, isStaff, resolveEtablissementId } from "@/lib/auth";
 
 export async function GET(req: Request) {
   const user = await getCurrentUser(req);
   if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
 
+  // Isolation par établissement : chaque directeur ne voit que son personnel
+  const etabId = await resolveEtablissementId(user);
   const teachers = await db.teacher.findMany({
+    where: etabId ? { etablissementId: etabId } : {},
     orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
     include: {
       user: { select: { email: true, name: true } },
@@ -22,6 +25,8 @@ export async function POST(req: NextRequest) {
   if (!user || !isStaff(user.role)) {
     return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
   }
+  // Héritage : l'enseignant créé est rattaché à l'établissement du staff (AREF + DP)
+  const etabId = await resolveEtablissementId(user);
   try {
     const body = await req.json();
     const { firstName, lastName, matiere, matiereAr, email, password, ppr, firstNameAr, lastNameAr, phone } = body;
@@ -39,6 +44,7 @@ export async function POST(req: NextRequest) {
         name: `${firstName} ${lastName}`,
         password,
         role: "ENSEIGNANT",
+        ...(etabId ? { etablissementId: etabId } : {}),
       },
     });
     const teacher = await db.teacher.create({
@@ -52,6 +58,7 @@ export async function POST(req: NextRequest) {
         firstNameAr: firstNameAr || null,
         lastNameAr: lastNameAr || null,
         phone: phone || null,
+        ...(etabId ? { etablissementId: etabId } : {}),
       },
       include: { user: { select: { email: true, name: true } } },
     });

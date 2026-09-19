@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, resolveEtablissementId } from "@/lib/auth";
 
 // GET /api/users — liste des comptes (Directeur uniquement)
 export async function GET(req: Request) {
@@ -10,7 +10,12 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
   }
 
+  const etabId = await resolveEtablissementId(user);
   const users = await db.user.findMany({
+    where: {
+      role: { not: "SUPERADMIN" },
+      ...(etabId ? { etablissementId: etabId } : {}),
+    },
     orderBy: [{ role: "asc" }, { name: "asc" }],
     select: {
       id: true,
@@ -32,6 +37,8 @@ export async function POST(req: NextRequest) {
   if (user.role !== "DIRECTEUR") {
     return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
   }
+  // Héritage : le compte créé est rattaché à l'établissement du directeur (AREF + DP)
+  const etabId = await resolveEtablissementId(user);
 
   try {
     const body = await req.json();
@@ -74,6 +81,7 @@ export async function POST(req: NextRequest) {
         name: displayName,
         password,
         role,
+        ...(etabId ? { etablissementId: etabId } : {}),
         ...(role === "ENSEIGNANT" && firstName && lastName
           ? {
               teacher: {
@@ -81,6 +89,7 @@ export async function POST(req: NextRequest) {
                   firstName,
                   lastName,
                   matiere: matiere || "—",
+                  ...(etabId ? { etablissementId: etabId } : {}),
                 },
               },
             }

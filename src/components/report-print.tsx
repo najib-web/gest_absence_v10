@@ -2,15 +2,27 @@
 
 // Printable orientation report — rendered inside a dialog for on-screen preview,
 // and printed as a formal PDF document via window.print() (print CSS isolates .print-area).
+// En-tête officiel : AREF + Direction Provinciale + Nom de l'établissement
+// (rattachés automatiquement au compte de l'utilisateur connecté).
 
 import { useI18n } from "@/lib/i18n-context";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Printer, Loader2, Download } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatDateShort } from "@/lib/hooks";
 import { exportElementToPdf } from "@/lib/pdf-export";
+import { parseReportStyle, styleToCss, getFontStack } from "@/components/report-style-toolbar";
+
+export interface EtablissementInfo {
+  nameFr: string;
+  nameAr: string;
+  arefFr: string;
+  arefAr: string;
+  dpFr: string;
+  dpAr: string;
+}
 
 export interface PrintOrientation {
   id: string;
@@ -21,6 +33,7 @@ export interface PrintOrientation {
   createdAt: string | Date;
   signature?: string | null;
   thresholdAtCreation?: number | null;
+  styleJson?: string | null;
   unjustifiedAbsences?: number;
   threshold?: number;
   student: {
@@ -51,7 +64,24 @@ export function ReportPrintDialog({
   const { t, locale } = useI18n();
   const [printing, setPrinting] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [etablissement, setEtablissement] = useState<EtablissementInfo | null>(null);
   const docRef = useRef<HTMLDivElement | null>(null);
+
+  // Établissement de rattachement (AREF + DP + nom) pour l'en-tête officiel
+  useEffect(() => {
+    if (!open || etablissement) return;
+    let cancelled = false;
+    fetch("/api/auth/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!d?.user?.etablissement || cancelled) return;
+        setEtablissement(d.user.etablissement);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [open, etablissement]);
 
   if (!orientation) return null;
   const current = orientation;
@@ -102,7 +132,7 @@ export function ReportPrintDialog({
         </div>
 
         <div ref={docRef}>
-          <ReportDocument orientation={orientation} locale={locale} t={t} />
+          <ReportDocument orientation={orientation} locale={locale} t={t} etablissement={etablissement} />
         </div>
       </DialogContent>
     </Dialog>
@@ -114,10 +144,12 @@ export function ReportDocument({
   orientation,
   locale,
   t,
+  etablissement,
 }: {
   orientation: PrintOrientation;
   locale: string;
   t: any;
+  etablissement?: EtablissementInfo | null;
 }) {
   const isAr = locale === "ar";
   const dir = isAr ? "rtl" : "ltr";
@@ -125,6 +157,17 @@ export function ReportDocument({
   const fontFamily = isAr
     ? '"Noto Naskh Arabic", "Amiri", "Sakkal Majalla", "Traditional Arabic", "Times New Roman", serif'
     : '"Times New Roman", "Liberation Serif", Tinos, Georgia, serif';
+
+  // Mise en forme choisie à la rédaction (palette d'édition) — sinon style par défaut
+  const style = parseReportStyle(orientation.styleJson);
+  const contentCss = style ? styleToCss(style) : undefined;
+  const titleCss = style
+    ? {
+        fontFamily: getFontStack(style.font),
+        fontSize: `${style.size}pt`,
+        color: style.color,
+      }
+    : undefined;
 
   return (
     <div
@@ -140,12 +183,28 @@ export function ReportDocument({
         fontFamily,
       }}
     >
-      {/* Header */}
+      {/* En-tête officiel : AREF + DP + Nom de l'établissement */}
       <div className="text-center">
-        <div className="text-[14pt] font-bold uppercase tracking-wide">
-          {t.appSubtitle}
-        </div>
-        <div className="text-[10pt] text-gray-600">{t.appName}</div>
+        {etablissement ? (
+          <>
+            <div className="text-[11pt] font-semibold leading-snug">
+              {isAr ? etablissement.arefAr : etablissement.arefFr}
+            </div>
+            <div className="text-[10.5pt] font-semibold leading-snug">
+              {isAr ? etablissement.dpAr : etablissement.dpFr}
+            </div>
+            <div className="text-[12.5pt] font-bold leading-snug">
+              {isAr ? etablissement.nameAr : etablissement.nameFr}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="text-[14pt] font-bold uppercase tracking-wide">
+              {t.appSubtitle}
+            </div>
+            <div className="text-[10pt] text-gray-600">{t.appName}</div>
+          </>
+        )}
         <div className="mt-3 inline-block border-2 border-black px-6 py-1.5 text-[13pt] font-bold">
           {isAr ? "تقرير توجيه" : "RAPPORT D'ORIENTATION"}
         </div>
@@ -215,10 +274,15 @@ export function ReportDocument({
         </div>
       </div>
 
-      {/* Report title + content */}
+      {/* Report title + content (mise en forme = palette d'édition) */}
       <div className="mt-4">
-        <div className="text-[11pt] font-bold mb-1">{orientation.title}</div>
-        <p className="text-[10pt] whitespace-pre-wrap leading-relaxed min-h-[70mm] border-t border-b border-gray-300 py-3">
+        <div className="text-[11pt] font-bold mb-1" style={titleCss}>
+          {orientation.title}
+        </div>
+        <p
+          className="text-[10pt] whitespace-pre-wrap leading-relaxed min-h-[70mm] border-t border-b border-gray-300 py-3"
+          style={contentCss}
+        >
           {orientation.content}
         </p>
       </div>

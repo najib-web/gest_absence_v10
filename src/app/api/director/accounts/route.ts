@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, resolveEtablissementId } from "@/lib/auth";
 
 const MIN_PASSWORD_LENGTH = 4;
 const emailValid = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
@@ -20,8 +20,12 @@ export async function GET(req: NextRequest) {
   if (!user || user.role !== "DIRECTEUR") {
     return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
   }
+  const etabId = await resolveEtablissementId(user);
   const accounts = await db.user.findMany({
-    where: { role: { in: ["DIRECTEUR", "SURVEILLANT"] } },
+    where: {
+      role: { in: ["DIRECTEUR", "SURVEILLANT"] },
+      ...(etabId ? { etablissementId: etabId } : {}),
+    },
     orderBy: [{ role: "desc" }, { createdAt: "asc" }],
     select: PUBLIC_FIELDS,
   });
@@ -35,6 +39,8 @@ export async function POST(req: NextRequest) {
   if (!user || user.role !== "DIRECTEUR") {
     return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
   }
+  // Héritage : le surveillant créé est rattaché à l'établissement du directeur (AREF + DP)
+  const etabId = await resolveEtablissementId(user);
   try {
     const body = await req.json();
     const name = (body?.name || "").trim();
@@ -60,7 +66,7 @@ export async function POST(req: NextRequest) {
     }
 
     const account = await db.user.create({
-      data: { name, email, password, role: "SURVEILLANT" },
+      data: { name, email, password, role: "SURVEILLANT", ...(etabId ? { etablissementId: etabId } : {}) },
       select: PUBLIC_FIELDS,
     });
 

@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 export const SESSION_COOKIE = "abs_session";
 const SECRET = process.env.AUTH_SECRET || "demo-secret-change-me";
 
-export type UserRole = "DIRECTEUR" | "SURVEILLANT" | "ENSEIGNANT";
+export type UserRole = "SUPERADMIN" | "DIRECTEUR" | "SURVEILLANT" | "ENSEIGNANT";
 
 export interface SessionUser {
   id: string;
@@ -14,6 +14,7 @@ export interface SessionUser {
   name: string;
   role: UserRole;
   teacherId?: string;
+  etablissementId?: string;
 }
 
 // Sign a payload (base64 + simple hash, not crypto-secure but ok for demo)
@@ -69,6 +70,7 @@ export async function authenticateUser(
     name: user.name,
     role: user.role as UserRole,
     teacherId: user.teacher?.id,
+    etablissementId: user.etablissementId ?? undefined,
   };
 }
 
@@ -78,14 +80,56 @@ export function isStaff(role: string): boolean {
   return role === "SURVEILLANT" || role === "DIRECTEUR";
 }
 
+// Admin backend (administration centrale) : crée les établissements + directeurs.
+export function isSuperAdmin(role: string): boolean {
+  return role === "SUPERADMIN";
+}
+
+// Crée l'établissement par défaut si la base n'en contient aucun
+// (premier démarrage, ou après un vidage total).
+export async function ensureDefaultEtablissement(): Promise<{ id: string }> {
+  const existing = await db.etablissement.findFirst({
+    orderBy: { createdAt: "asc" },
+    select: { id: true },
+  });
+  if (existing) return existing;
+  const created = await db.etablissement.create({
+    data: {
+      code: "ETAB-001",
+      nameFr: "Établissement Scolaire",
+      nameAr: "المؤسسة التعليمية",
+      arefFr: "Académie Régionale d'Éducation et de Formation",
+      arefAr: "الأكاديمية الجهوية للتربية والتكوين",
+      dpFr: "Direction Provinciale",
+      dpAr: "المديرية الإقليمية",
+    },
+    select: { id: true },
+  });
+  return created;
+}
+
 let defaultAccountsEnsured = false;
 
-// Crée les comptes de base (directeur, surveillant) s'ils n'existent pas.
+// Crée les comptes de base (admin backend, directeur, surveillant) s'ils
+// n'existent pas, et rattache directeur/surveillant à l'établissement par défaut.
 // Idempotent — exécuté une seule fois par process.
 export async function ensureDefaultAccounts(): Promise<void> {
   if (defaultAccountsEnsured) return;
   defaultAccountsEnsured = true;
   try {
+    const admin = await db.user.findUnique({ where: { email: "admin@edu.ma" } });
+    if (!admin) {
+      await db.user.create({
+        data: {
+          email: "admin@edu.ma",
+          name: "Administration Centrale",
+          password: "admin123",
+          role: "SUPERADMIN",
+        },
+      });
+    }
+    // Établissement par défaut : garantit l'héritage AREF/DP des comptes de base
+    const etab = await ensureDefaultEtablissement();
     const directeur = await db.user.findUnique({ where: { email: "directeur@edu.ma" } });
     if (!directeur) {
       await db.user.create({
@@ -94,7 +138,13 @@ export async function ensureDefaultAccounts(): Promise<void> {
           name: "Le Directeur",
           password: "directeur123",
           role: "DIRECTEUR",
+          etablissementId: etab.id,
         },
+      });
+    } else if (!directeur.etablissementId) {
+      await db.user.update({
+        where: { id: directeur.id },
+        data: { etablissementId: etab.id },
       });
     }
     const surveillant = await db.user.findUnique({ where: { email: "surveillant@edu.ma" } });
@@ -105,7 +155,13 @@ export async function ensureDefaultAccounts(): Promise<void> {
           name: "M. Karim Idrissi",
           password: "surveillant123",
           role: "SURVEILLANT",
+          etablissementId: etab.id,
         },
+      });
+    } else if (!surveillant.etablissementId) {
+      await db.user.update({
+        where: { id: surveillant.id },
+        data: { etablissementId: etab.id },
       });
     }
   } catch {
@@ -126,4 +182,21 @@ export async function getCurrentUser(request: Request): Promise<SessionUser | nu
   const match = cookie.match(new RegExp(`${SESSION_COOKIE}=([^;]+)`));
   if (!match) return null;
   return getSession(match[1]);
+}
+
+// Établissement de rattachement de l'utilisateur courant.
+// Les sessions antérieures (cookies signés avant l'ajout du champ) sont
+// rattrapées par une lecture en base.
+export async function resolveEtablissementId(user: SessionUser): Promise<string | null> {
+  if (user.etablissementId) return user.etablissementId;
+  if (user.role === "SUPERADMIN") return null;
+  try {
+    const row = await db.user.findUnique({
+      where: { id: user.id },
+      select: { etablissementId: true },
+    });
+    return row?.etablissementId ?? null;
+  } catch {
+    return null;
+  }
 }

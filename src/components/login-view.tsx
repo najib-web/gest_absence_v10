@@ -14,8 +14,9 @@ interface SessionUser {
   id: string;
   email: string;
   name: string;
-  role: "DIRECTEUR" | "SURVEILLANT" | "ENSEIGNANT";
+  role: "SUPERADMIN" | "DIRECTEUR" | "SURVEILLANT" | "ENSEIGNANT";
   teacherId?: string;
+  etablissementId?: string;
 }
 
 export function LoginView({ onLoggedIn }: { onLoggedIn: (user: SessionUser) => void }) {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser, isStaff } from "@/lib/auth";
+import { getCurrentUser, isStaff, resolveEtablissementId } from "@/lib/auth";
 import { parseTeachersExcel, deaccent } from "@/lib/excel";
 import { subjectArFromFr } from "@/lib/subjects";
 
@@ -33,6 +33,9 @@ export async function POST(req: NextRequest) {
   if (!user || !isStaff(user.role)) {
     return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
   }
+  // Héritage : les enseignants importés par le directeur (ou son staff) sont
+  // rattachés à son établissement (AREF + DP).
+  const etabId = await resolveEtablissementId(user);
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
@@ -165,6 +168,7 @@ export async function POST(req: NextRequest) {
                 firstNameAr: r.firstNameAr || null,
                 lastNameAr: r.lastNameAr || null,
                 phone: r.phone || null,
+                ...(etabId ? { etablissementId: etabId } : {}),
               },
             });
             updated++;
@@ -182,6 +186,7 @@ export async function POST(req: NextRequest) {
               name: `${r.firstName} ${r.lastName}`.trim(),
               password: r.password,
               role: "ENSEIGNANT",
+              ...(etabId ? { etablissementId: etabId } : {}),
             },
           });
           await db.teacher.create({
@@ -195,6 +200,7 @@ export async function POST(req: NextRequest) {
               firstNameAr: r.firstNameAr || null,
               lastNameAr: r.lastNameAr || null,
               phone: r.phone || null,
+              ...(etabId ? { etablissementId: etabId } : {}),
             },
           });
           created++;

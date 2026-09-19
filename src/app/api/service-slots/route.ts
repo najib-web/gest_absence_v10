@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser, isStaff } from "@/lib/auth";
+import { getCurrentUser, isStaff, resolveEtablissementId } from "@/lib/auth";
 import { isValidTimeSlot } from "@/lib/schedule";
 
 // GET /api/service-slots — weekly schedule grid entries
@@ -12,10 +12,13 @@ export async function GET(req: Request) {
   const teacherId = url.searchParams.get("teacherId");
   const dayOfWeek = url.searchParams.get("dayOfWeek");
 
+  // Isolation par établissement (via l'enseignant du créneau)
+  const etabId = await resolveEtablissementId(user);
   const slots = await db.serviceSlot.findMany({
     where: {
       ...(teacherId ? { teacherId } : {}),
       ...(dayOfWeek ? { dayOfWeek: parseInt(dayOfWeek) } : {}),
+      ...(etabId ? { teacher: { etablissementId: etabId } } : {}),
     },
     orderBy: [{ dayOfWeek: "asc" }, { startMin: "asc" }],
     include: {

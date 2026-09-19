@@ -46,6 +46,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { REPORT_TEMPLATES, fillTemplate } from "@/lib/report-templates";
+import {
+  ReportStyleToolbar,
+  loadStoredReportStyle,
+  styleToCss,
+  type ReportStyle,
+} from "@/components/report-style-toolbar";
 
 type Status = "PRESENT" | "ABSENT" | "RETARD";
 
@@ -486,6 +492,12 @@ function OrientationReportDialog({
   const [content, setContent] = useState("");
   const [stats, setStats] = useState<{ absences: number; seuil: number } | null>(null);
   const [sending, setSending] = useState(false);
+  // Palette d'édition : police, taille, style (G/I/S) et couleur du texte
+  const [style, setStyle] = useState<ReportStyle | null>(null);
+
+  useEffect(() => {
+    setStyle(loadStoredReportStyle());
+  }, []);
 
   // Compteurs d'absences non justifiées de l'élève (pour pré-remplir {absences} / {seuil})
   useEffect(() => {
@@ -535,6 +547,7 @@ function OrientationReportDialog({
         content,
         sessionId,
         absenceId: existingAbsenceId ?? undefined,
+        style: style ? JSON.stringify(style) : undefined,
       });
       toast.success(t.reportSent);
       setTemplateId("custom");
@@ -580,6 +593,7 @@ function OrientationReportDialog({
               <p className="text-xs text-emerald-600 dark:text-emerald-400">{t.templateHint}</p>
             )}
           </div>
+          {style && <ReportStyleToolbar value={style} onChange={setStyle} />}
           <div className="space-y-2">
             <Label htmlFor="rep-content">{t.reportContent}</Label>
             <Textarea
@@ -591,6 +605,7 @@ function OrientationReportDialog({
               dir={isAr ? "rtl" : "ltr"}
               placeholder={t.reportPlaceholder}
               required
+              style={style ? styleToCss(style) : undefined}
             />
           </div>
           <DialogFooter>

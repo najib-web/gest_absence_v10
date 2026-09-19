@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser, isStaff } from "@/lib/auth";
+import { getCurrentUser, isStaff, resolveEtablissementId } from "@/lib/auth";
 
 export async function GET(req: Request) {
   const user = await getCurrentUser(req);
@@ -9,7 +9,10 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const withCounts = url.searchParams.get("withCounts") === "true";
 
+  // Isolation par établissement
+  const etabId = await resolveEtablissementId(user);
   const classes = await db.classe.findMany({
+    where: etabId ? { etablissementId: etabId } : {},
     orderBy: { code: "asc" },
     include: {
       niveau: true,
@@ -25,6 +28,8 @@ export async function POST(req: NextRequest) {
   if (!user || !isStaff(user.role)) {
     return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
   }
+  // Héritage : la classe créée est rattachée à l'établissement du staff (AREF + DP)
+  const etabId = await resolveEtablissementId(user);
   try {
     const body = await req.json();
     const { code, labelFr, labelAr, niveauId, capacity } = body;
@@ -38,6 +43,7 @@ export async function POST(req: NextRequest) {
         labelAr,
         niveauId,
         capacity: capacity ?? 40,
+        ...(etabId ? { etablissementId: etabId } : {}),
       },
       include: { niveau: true, groups: true },
     });

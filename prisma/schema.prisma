@@ -13,16 +13,48 @@ datasource db {
 // Users & Auth
 // =====================
 
+// SUPERADMIN : administration centrale (crée les établissements + leurs directeurs)
+// DIRECTEUR / SURVEILLANT / ENSEIGNANT : rattachés à un établissement (AREF + DP)
 model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  name           String
+  password       String
+  role           String   @default("ENSEIGNANT") // SUPERADMIN | DIRECTEUR | SURVEILLANT | ENSEIGNANT
+  etablissementId String?
+  etablissement  Etablissement? @relation(fields: [etablissementId], references: [id], onDelete: SetNull)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  teacher   Teacher?
+}
+
+// =====================
+// Établissements (administration centrale)
+// =====================
+// L'admin backend crée les établissements avec leur AREF (Académie Régionale
+// d'Éducation et de Formation) et leur DP (Direction Provinciale), et affecte
+// un compte Directeur. Surveillants, enseignants et élèves créés sous ce
+// directeur héritent automatiquement de l'AREF et de la DP.
+model Etablissement {
   id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  password  String
-  role      String   @default("ENSEIGNANT") // SURVEILLANT | ENSEIGNANT
+  code      String   @unique
+  nameFr    String
+  nameAr    String
+  arefFr    String
+  arefAr    String
+  dpFr      String
+  dpAr      String
+  address   String?
+  phone     String?
+  email     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  teacher   Teacher?
+  users    User[]
+  teachers Teacher[]
+  students Student[]
+  classes  Classe[]
 }
 
 // =====================
@@ -45,6 +77,8 @@ model Classe {
   labelAr   String
   niveauId  String
   niveau    Niveau   @relation(fields: [niveauId], references: [id], onDelete: Cascade)
+  etablissementId String?
+  etablissement Etablissement? @relation(fields: [etablissementId], references: [id], onDelete: SetNull)
   capacity  Int      @default(40)
   createdAt DateTime @default(now())
 
@@ -84,6 +118,8 @@ model Student {
   parentPhone String?
   classeId   String
   classe     Classe   @relation(fields: [classeId], references: [id], onDelete: Cascade)
+  etablissementId String?
+  etablissement Etablissement? @relation(fields: [etablissementId], references: [id], onDelete: SetNull)
   groupId    String?
   groupe     Groupe?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
   createdAt  DateTime @default(now())
@@ -110,6 +146,8 @@ model Teacher {
   matiereAr String?
   ppr       String?  // numéro PPR (professeur)
   signature String?  // signature manuscrite de l'enseignant (data URL)
+  etablissementId String?
+  etablissement Etablissement? @relation(fields: [etablissementId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
 
   services     ServiceTable[]
@@ -257,6 +295,8 @@ model Orientation {
   signature   String?
   status      String    @default("PENDING")
   thresholdAtCreation Int?
+  // Palette de mise en forme choisie à la rédaction (police, taille, G/I/S, couleur) — JSON
+  styleJson   String?
   resolutionNote String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

@@ -3,7 +3,7 @@
 // Surveillant page: absence threshold settings, students exceeding the threshold,
 // teacher orientation reports (printable PDF), and all orientations management.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/lib/i18n-context";
 import { useFetch, apiPost, apiPatch, apiDelete, apiPut, formatDateShort } from "@/lib/hooks";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -38,6 +38,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ReportPrintDialog, type PrintOrientation } from "@/components/report-print";
+import {
+  ReportStyleToolbar,
+  loadStoredReportStyle,
+  styleToCss,
+  type ReportStyle,
+} from "@/components/report-style-toolbar";
 import {
   Loader2,
   Settings2,
@@ -80,6 +86,7 @@ interface Orientation {
   status: string;
   createdAt: string;
   thresholdAtCreation: number | null;
+  styleJson?: string | null;
   resolutionNote: string | null;
   student: {
     id: string;
@@ -200,6 +207,7 @@ export function AdminOrientations() {
       createdAt: o.createdAt,
       signature: (o as any).signature ?? null,
       thresholdAtCreation: o.thresholdAtCreation,
+      styleJson: o.styleJson ?? null,
       unjustifiedAbsences: o.unjustifiedAbsences,
       threshold: o.threshold,
       student: o.student,
@@ -684,6 +692,8 @@ function OrientStudentDialog({
   const { t } = useI18n();
   const [content, setContent] = useState("");
   const [saving, setSaving] = useState(false);
+  // Palette d'édition : police, taille, style (G/I/S) et couleur du texte
+  const [style, setStyle] = useState<ReportStyle | null>(null);
 
   const [wasOpen, setWasOpen] = useState(false);
   if (target && !wasOpen) {
@@ -697,6 +707,10 @@ function OrientStudentDialog({
     setWasOpen(false);
   }
 
+  useEffect(() => {
+    if (target) setStyle(loadStoredReportStyle());
+  }, [target]);
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!target) return;
@@ -707,6 +721,7 @@ function OrientStudentDialog({
         title: t.orientationTitle,
         content,
         source: "SEUIL",
+        style: style ? JSON.stringify(style) : undefined,
       });
       toast.success(t.orientationCreated);
       onSaved();
@@ -734,6 +749,7 @@ function OrientStudentDialog({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-4">
+          {style && <ReportStyleToolbar value={style} onChange={setStyle} />}
           <div className="space-y-2">
             <Label htmlFor="or-content">{t.reportContent}</Label>
             <Textarea
@@ -742,6 +758,7 @@ function OrientStudentDialog({
               onChange={(e) => setContent(e.target.value)}
               rows={5}
               required
+              style={style ? styleToCss(style) : undefined}
             />
           </div>
           <DialogFooter>

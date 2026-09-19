@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser, isStaff } from "@/lib/auth";
+import { getCurrentUser, isStaff, resolveEtablissementId } from "@/lib/auth";
 
 export async function GET(req: Request) {
   const user = await getCurrentUser(req);
@@ -11,8 +11,11 @@ export async function GET(req: Request) {
   const groupId = url.searchParams.get("groupId");
   const search = url.searchParams.get("search");
 
+  // Isolation par établissement
+  const etabId = await resolveEtablissementId(user);
   const students = await db.student.findMany({
     where: {
+      ...(etabId ? { etablissementId: etabId } : {}),
       ...(classeId ? { classeId } : {}),
       ...(groupId ? { groupId } : {}),
       ...(search
@@ -52,6 +55,8 @@ export async function POST(req: NextRequest) {
   if (!user || !isStaff(user.role)) {
     return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
   }
+  // Héritage : l'élève créé est rattaché à l'établissement du staff (AREF + DP)
+  const etabId = await resolveEtablissementId(user);
   try {
     const body = await req.json();
     const { codeMassar, firstName, lastName, classeId, groupId, firstNameAr, lastNameAr, parentPhone } = body;
@@ -68,6 +73,7 @@ export async function POST(req: NextRequest) {
         firstNameAr: firstNameAr || null,
         lastNameAr: lastNameAr || null,
         parentPhone: parentPhone || null,
+        ...(etabId ? { etablissementId: etabId } : {}),
       },
     });
     return NextResponse.json({ student });

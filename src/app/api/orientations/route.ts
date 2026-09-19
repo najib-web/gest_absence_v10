@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, resolveEtablissementId } from "@/lib/auth";
 
 // GET /api/orientations — list orientations / teacher reports
 // Filters: status=PENDING|RESOLVED, source=TEACHER|SEUIL|MANUEL, teacherId, studentId
@@ -14,12 +14,15 @@ export async function GET(req: Request) {
   const teacherId = url.searchParams.get("teacherId");
   const studentId = url.searchParams.get("studentId");
 
+  // Isolation par établissement (via l'élève concerné)
+  const etabId = await resolveEtablissementId(user);
   const orientations = await db.orientation.findMany({
     where: {
       ...(status ? { status } : {}),
       ...(source ? { source } : {}),
       ...(teacherId ? { teacherId } : {}),
       ...(studentId ? { studentId } : {}),
+      ...(etabId ? { student: { etablissementId: etabId } } : {}),
     },
     orderBy: { createdAt: "desc" },
     include: {
@@ -69,6 +72,7 @@ export async function POST(req: NextRequest) {
       source,
       sessionId,
       absenceId,
+      style,
     } = body as {
       studentId: string;
       title: string;
@@ -76,6 +80,7 @@ export async function POST(req: NextRequest) {
       source?: string;
       sessionId?: string;
       absenceId?: string;
+      style?: string;
     };
 
     if (!studentId || !content) {
@@ -126,6 +131,8 @@ export async function POST(req: NextRequest) {
         signature: signatureSnapshot,
         status: "PENDING",
         thresholdAtCreation: finalSource === "SEUIL" ? threshold : null,
+        // Mise en forme choisie dans la palette d'édition (police, taille, G/I/S, couleur)
+        ...(typeof style === "string" && style.length <= 600 ? { styleJson: style } : {}),
       },
       include: {
         student: { include: { classe: true, groupe: true } },
