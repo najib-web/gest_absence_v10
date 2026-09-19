@@ -23,7 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2, Send, CheckCircle2, ShieldAlert, Search, Filter } from "lucide-react";
+import { Loader2, Send, CheckCircle2, ShieldAlert, Search, Filter, BellOff } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -35,6 +35,8 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDate } from "@/lib/hooks";
+import { useAttendanceMonitor } from "@/hooks/use-attendance-monitor";
+import { slotRangeLabel } from "@/lib/schedule";
 
 export function AdminSupervision() {
   const { t, locale } = useI18n();
@@ -42,6 +44,9 @@ export function AdminSupervision() {
   const [classeFilter, setClasseFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [justifyTarget, setJustifyTarget] = useState<any | null>(null);
+
+  // Appels non faits : séances commencées depuis plus de 5 min sans enregistrement
+  const { missed } = useAttendanceMonitor({ enabled: true });
 
   const filterParam = filter === "oriented" ? "oriented=true" : filter === "justified" ? "justified=true" : filter === "unjustified" ? "unjustified=true" : "";
   const { data: absencesData, loading, refresh } = useFetch<{ absences: any[] }>(
@@ -92,6 +97,47 @@ export function AdminSupervision() {
         <h2 className="text-2xl font-bold tracking-tight">{t.supervision}</h2>
         <p className="text-sm text-muted-foreground">{t.absences} — {t.surveillant}</p>
       </div>
+
+      {/* Appels non faits (enseignants) */}
+      <Card className={missed.length > 0 ? "border-red-200 bg-red-50/40 dark:border-red-900 dark:bg-red-950/20" : "border-emerald-100 bg-emerald-50/40 dark:border-emerald-900 dark:bg-emerald-950/20"}>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <BellOff className={`h-5 w-5 ${missed.length > 0 ? "text-red-500" : "text-emerald-500"}`} />
+            {t.missedCallsTitle}
+            {missed.length > 0 && (
+              <Badge variant="destructive" className="ms-1">{missed.length}</Badge>
+            )}
+          </CardTitle>
+          <CardDescription>{t.missedCallsDesc}</CardDescription>
+        </CardHeader>
+        {missed.length > 0 && (
+          <CardContent className="space-y-2">
+            {missed.map((m) => (
+              <div
+                key={m.key}
+                className="flex flex-wrap items-center gap-3 p-3 rounded-lg border bg-card"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium truncate">
+                    {m.teacherName || t.teacher}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {m.classeCode}{m.groupeCode ? ` · ${m.groupeCode}` : ""} — {locale === "ar" && m.subjectAr ? m.subjectAr : m.subject}
+                  </div>
+                </div>
+                <Badge variant="outline" className="font-mono">
+                  {slotRangeLabel(m.startMin, m.endMin)}
+                </Badge>
+                <Badge variant={m.slotOngoing ? "default" : "secondary"} className={m.slotOngoing ? "bg-red-600" : ""}>
+                  {m.slotOngoing
+                    ? t.missedCallLate.replace("{mins}", String(Math.max(m.minutesLate, 5)))
+                    : t.missedCallNow}
+                </Badge>
+              </div>
+            ))}
+          </CardContent>
+        )}
+      </Card>
 
       {/* Filters */}
       <Card>

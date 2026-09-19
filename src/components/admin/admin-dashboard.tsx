@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useI18n } from "@/lib/i18n-context";
 import { AppShell, type SessionUser, type NavItem } from "@/components/app-shell";
 import {
@@ -15,6 +15,7 @@ import {
   UserCog,
   Database,
 } from "lucide-react";
+import { toast } from "sonner";
 import { AdminOverview } from "@/components/admin/admin-overview";
 import { AdminStudents } from "@/components/admin/admin-students";
 import { AdminClasses } from "@/components/admin/admin-classes";
@@ -25,10 +26,31 @@ import { AdminOrientations } from "@/components/admin/admin-orientations";
 import { AdminAccounts } from "@/components/admin/admin-accounts";
 import { AdminData } from "@/components/admin/admin-data";
 import { AbsenceHistory } from "@/components/absence-history";
+import { useAttendanceMonitor } from "@/hooks/use-attendance-monitor";
+import { slotRangeLabel } from "@/lib/schedule";
+import type { MissedCall } from "@/lib/attendance-alerts";
 
 export function AdminDashboard({ user, onLogout }: { user: SessionUser; onLogout: () => void }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [active, setActive] = useState("overview");
+
+  // Notification message : enseignants qui n'ont pas fait l'appel
+  // (5 min après le début de la séance) — surveillant + directeur
+  useAttendanceMonitor({
+    enabled: user.role === "SURVEILLANT" || user.role === "DIRECTEUR",
+    onNewAlert: useCallback(
+      (m: MissedCall) => {
+        const detail = `${m.classeCode}${m.groupeCode ? ` · ${m.groupeCode}` : ""} — ${
+          locale === "ar" && m.subjectAr ? m.subjectAr : m.subject
+        } · ${slotRangeLabel(m.startMin, m.endMin)}`;
+        toast.warning(t.missedCallToast.replace("{teacher}", m.teacherName || t.teacher), {
+          description: detail,
+          duration: 12000,
+        });
+      },
+      [t, locale]
+    ),
+  });
 
   const navItems: NavItem[] = [
     { id: "overview", label: t.overview, icon: <LayoutDashboard className="h-4 w-4" /> },

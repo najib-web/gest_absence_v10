@@ -177,6 +177,12 @@ model Session {
   subjectAr   String?
   createdAt   DateTime @default(now())
 
+  // Suivi de l'appel : positionné dès que les absences de la séance sont
+  // enregistrées (même si « tout présent ») — sert aux rappels sonores
+  // enseignant (5 min après le début) et aux notifications surveillant.
+  attendanceDone Boolean  @default(false)
+  attendanceAt   DateTime?
+
   absences    Absence[]
   orientations Orientation[]
 }

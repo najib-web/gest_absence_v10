@@ -89,3 +89,27 @@ Stage Summary:
 - Livré : liste officielle 2026-2027 intégrée — 889 élèves importés dans Neon (0 erreur) via l'import Excel existant, dont le parseur a été corrigé pour reconnaître les en-têtes arabes de l'export Massar (nom/prénom + versions بالعربية correctement séparés).
 - Base : 889 élèves / 32 classes / 3 niveaux ; upsert par Code Massar → ré-import du même fichier = mise à jour sans doublon (téléphones pourront être ajoutés plus tard via un fichier enrichi).
 - Rappel maintenu : réinitialiser le mot de passe Neon, changer les mots de passe par défaut avant production.
+
+---
+Task ID: 14
+Agent: Super Z (main agent)
+Task: Notification sonore enseignant 5 min après le début de chaque séance (rappel d'appel) + notification message au surveillant pour les enseignants n'ayant pas fait l'appel.
+
+Work Log:
+- Environnement : .env.neon reperdu (sandbox) → recréé (chaîne Neon poolée) ; serveur dev relancé dessus (setsid, DATABASE_URL exporté).
+- Schéma : Session.attendanceDone Boolean @default(false) + Session.attendanceAt DateTime? (suivi de l'appel, même « tout présent ») ; prisma db push Neon OK + generate.
+- API : POST /api/absences positionne attendanceDone=true + attendanceAt dès l'enregistrement (replace mode inchangé) — désactive définitivement rappels/notifications pour la séance.
+- src/lib/attendance-alerts.ts (NOUVEAU) : computeMissedCalls(slots, sessions, now) — séances attendues issues de la grille ServiceSlot (jour + créneau + enseignant + classe + groupe + matière), rapprochées des séances du jour via la même clé que le dédoublonnage /api/sessions (teacherId|classeId|groupId|subject) ; grâce 5 min ; dimanche → aucune alerte ; renvoie teacherName, classe, matière, plage horaire, minutesLate, sessionId, slotOngoing. Tout le calcul est côté client avec l'horloge locale du navigateur (cohérent avec findCurrentSlot, insensible aux fuseaux serveur).
+- src/lib/sound.ts (NOUVEAU) : playReminderBeep via Web Audio API (ding-dong 880/660 Hz x2, enveloppes douces, resume() anti-autoplay, zéro fichier audio → compatible PWA offline).
+- src/hooks/use-attendance-monitor.ts (NOUVEAU) : polling grille (/api/service-slots) + séances du jour (/api/sessions?from=today) toutes les 45 s, recalcul toutes les 30 s via horloge locale ; onNewAlert appelé une seule fois par occurrence (clé stable slot|jour, ref de dédup) ; enseignant → grille filtrée teacherId, staff → grille complète.
+- Enseignant (teacher-dashboard.tsx) : hook actif sur tous les onglets → playReminderBeep + toast warning 12 s « Rappel : faites l'appel — La séance {classe} — {matiere} (16:00 - 18:00) a commencé il y a {mins} min — pensez à enregistrer les absences. » (matière AR en arabe).
+- Surveillant/Directeur (admin-dashboard.tsx) : toast message « {enseignant} n'a pas fait l'appel — {classe} — {matiere} · {plage} » une fois par séance.
+- Onglet Surveillance (admin-supervision.tsx) : carte « Appels non faits » (compteur, verte si à jour / rouge sinon) listant enseignant, classe·groupe, matière, plage horaire, badge « retard de X min » (séance en cours) ou « séance en cours » (terminée sans appel) ; mise à jour auto toutes les 45 s.
+- i18n : 8 clés FR/AR (callReminderTitle/Desc, missedCallsTitle/Desc, noMissedCalls, missedCallToast, missedCallLate, missedCallNow). Fix au passage : clés present/teacher accidentellement dupliquées/supprimées pendant l'insertion → rétablies (tsc vérifié).
+- Tests E2E réels (slot samedi 16:00-18:00 TCSF-1 créé via API pour Fadwa Rami, séance à 16:47) : enseignante → toast + son « Rappel : faites l'appel … commencé il y a 42 min » ; surveillant → toast « Fadwa Rami n'a pas fait l'appel — TCSF-1 — Mathématiques · 16:00 - 18:00 » + carte Surveillance « Appels non faits (1) / retard de 44 min » ; POST /api/absences (entries vides = tout présent) → attendanceDone=true en base → carte vide + plus aucun rappel au rechargement. Artefacts de test supprimés ensuite (base : 889 élèves, 0 slot, 0 session).
+- Vérifications : tsc src 0 erreur, lint 0 erreur, dev.log sans erreur.
+
+Stage Summary:
+- Livré : rappel sonore (ding-dong) + toast pour l'enseignant 5 min après le début de chaque séance de sa grille tant que l'appel n'est pas enregistré ; notification message pour le Surveillant/Directeur (toast temps réel + carte persistante « Appels non faits » dans l'onglet Surveillance) listant les enseignants défaillants avec plage horaire et retard ; l'enregistrement de l'appel (même « tout présent ») fait disparaître immédiatement rappels et notifications.
+- Technique : marqueur Session.attendanceDone/attendanceAt (db push Neon), détection 100 % client (fuseau-proof), polling 30/45 s, Web Audio sans fichier (PWA offline).
+- Rappel maintenu : réinitialiser le mot de passe Neon, changer les mots de passe par défaut avant production.

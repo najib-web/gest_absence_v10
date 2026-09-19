@@ -96,6 +96,13 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // L'appel est fait (même « tout présent ») → désactive les rappels
+    // sonores enseignant et les notifications surveillant pour cette séance.
+    await db.session.update({
+      where: { id: sessionId },
+      data: { attendanceDone: true, attendanceAt: new Date() },
+    });
+
     return NextResponse.json({
       success: true,
       marked: toCreate.length,
