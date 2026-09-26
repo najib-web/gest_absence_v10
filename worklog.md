@@ -221,3 +221,23 @@ Work Log:
 Stage Summary:
 - Guide enseignant AR régénéré à l'identique du pipeline validé (11 pages, vectoriel, numéroté, métadonnées complètes) et exposé en double emplacement : download/guide-utilisation-enseignant-ar.pdf (racine, nom clair) et download/guide-enseignant-ar/guide-enseignant.pdf (dossier complet avec HTML source, polices, images).
 - Sources restent éditables : modifier guide-enseignant.html puis relancer html2pdf-next.js --nopaged + guide-number-meta.py.
+
+---
+Task ID: 20
+Agent: Super Z (main agent)
+Task: « me produire la version word » — version Word éditable du guide enseignant AR.
+
+Work Log:
+- Skill docx chargé ; route Create + références lues (create.md, docx-js-core.md, design-system.md complet avec recette R1/calcTitleLayout/calcCoverSpacing, common-rules.md).
+- docx@9.7.2 installé (bun add) ; options RTL confirmées dans le dist (bidirectional, rightToLeft, visuallyRightToLeft, sizeComplexScript, boldComplexScript).
+- scripts/guide-word-content.js : contenu intégral extrait de guide-enseignant.html (7 chapitres, 12 étapes, 8 figures, 4 callouts, 6 FAQ, خلاصة) avec mini-markdown **gras**.
+- scripts/guide-word.js : recette R1 adaptée RTL (couverture 16838 exact, allNoBorders, marges 0, calcTitleLayout métrique arabe pt×11.5, calcCoverSpacing) ; palette MÉRS du guide (1A3C2A/2D6B4A/D5EAD8/B97929) ; polices Windows standard cs : Traditional Arabic (corps 13pt) + Sakkal Majalla (titres) ; 3 sections (couverture sans numéro / sommaire romain / corps arabe start=1) ; TableOfContents + note de mise à jour ; callouts = tables 1×1 ombrées visuellement RTL ; récap 4 étapes en table 2 colonnes RTL.
+- add_toc_placeholders.py --auto : 8 signets + 8 entrées, updateFields=true.
+- scripts/guide-word-pagenum.py : sectPr → footer2 (ROMAN) / footer3 (arabic) patchés via rels, pgNumType vides supprimés.
+- postcheck.py : 8/9 passés, 0 erreur, 0 avertissement (note fontes = polices arabes standard absentes du Linux local, présentes sur Windows/Office).
+- Vérification visuelle LibreOffice → PDF 12 pages : couverture R1 verte RTL parfaite, sommaire numéroté (pied i), corps p.1 avec callout + étapes, figures intégrées ratio 1440×900 préservé, خلاصة + closing. 872 Ko.
+
+Stage Summary:
+- Livré : download/guide-utilisation-enseignant-ar.docx — version Word 100 % éditable du guide (12 pages : couverture verte pleine page, sommaire auto, 7 chapitres + خاتمة, 8 captures réelles, callouts encadrés, en-tête/pieds paginés romain/arabe).
+- Scripts réutilisables : scripts/guide-word.js + guide-word-content.js (éditer le contenu puis relancer) + guide-word-pagenum.py (post-traitement obligatoire après régénération).
+- Polices cibles Windows/Office : Traditional Arabic + Sakkal Majalla (substitution automatique sinon).
