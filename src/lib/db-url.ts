@@ -56,7 +56,14 @@ export function resolveDatabaseUrl(): string {
   if (fileEnv && isUsablePostgres(fileEnv.DATABASE_URL)) return fileEnv.DATABASE_URL;
   if (fileEnv && isUsablePostgres(fileEnv.POSTGRES_URL)) return fileEnv.POSTGRES_URL;
 
-  // 4 — configuration manquante
+  // 4 — développement local sans Postgres configuré : SQLite (file:) accepté.
+  // Ne change rien en production (Vercel/Neon) : les variables d'environnement
+  // PostgreSQL sont toujours résolues avant ce repli.
+  if (process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith("file:")) {
+    return process.env.DATABASE_URL;
+  }
+
+  // 5 — configuration manquante
   throw new Error(
     "URL PostgreSQL introuvable. Définissez DATABASE_URL (variable d'environnement) " +
       "ou créez un fichier .env.neon avec DATABASE_URL=postgresql://... " +

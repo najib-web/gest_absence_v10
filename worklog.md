@@ -165,3 +165,40 @@ Stage Summary:
 - Livré : admin backend complet (compte admin@edu.ma / admin123) qui crée les établissements avec AREF + DP bilingues et affecte leurs directeurs ; héritage automatique — tout surveillant, enseignant et élève créé ou importé sous un directeur est rattaché à son établissement (AREF/DP), avec isolation stricte des données entre établissements ; en-tête officiel des rapports (AREF + DP + Nom de l'établissement, FR ou AR selon le rapport) ; palette d'édition (police, taille, G/I/S, couleur) dans la fenêtre de saisie/choix du rapport avec aperçu live, mémorisation du dernier choix et restitution exacte à l'impression/PDF.
 - Base : ETAB-001 (établissement par défaut modifiable dans la nouvelle interface) rattache toutes les données actuelles (889 élèves, 57 enseignants, 32 classes) ; les 3 onglets d'édition existants restent opérationnels.
 - Rappel maintenu : réinitialiser le mot de passe Neon, changer les mots de passe par défaut (admin123, directeur123, surveillant123) avant production, DATABASE_URL poolée chez Vercel.
+---
+Task ID: 17
+Agent: Super Z (main agent)
+Task: Périmètre établissement pour la Gestion des Données — « pour le surveillant et le directeur la gestion de données est liée seulement à l'établissement auquel ils sont attachés ».
+
+Work Log:
+- API /api/admin/data réécrite : GET compte les données via filtres par établissement (absences via élève/séance→enseignant, orientations via élève/enseignant, sessions/créneaux/tables via enseignant OU classe, groupes via classe, enseignants via comptes ENSEIGNANT de l'étab) + renvoie l'objet établissement (AREF/DP/nom FR+AR) pour l'affichage ; POST refuse toute opération si aucun établissement résolvable (resolveEtablissementId).
+- Portée « niveaux » supprimée (référentiel partagé entre établissements — suppression dangereuse pour les autres établissements) → 400 explicite ; carte retirée de l'UI.
+- scope=all : fin du TRUNCATE global — purgeEtablissement() enchaîne 10 deleteMany filtrés dans l'ordre des FK (absences → orientations → sessions → dismissals → créneaux → tables → élèves → comptes enseignants+profils → groupes → classes) ; comptes Surveillant/Directeur, niveaux, réglages et l'établissement lui-même intacts ; portabilité SQLite (fini le SQL brut Postgres).
+- UI admin-data.tsx : badge « Périmètre des opérations » (nom + code + AREF — DP, version FR/AR selon langue) sous le titre ; comptes affichés = ceux de l'établissement ; plus de déconnexion forcée après « Tout vider » (comptes conservés) → toast + rafraîchissement ; confirmation tapée VIDER conservée.
+- i18n : dataManagementDesc/dataAllTitle/dataAllDesc/dataConfirmAllTitle/dataConfirmEmptyDesc/dataCascadeWarnTeachers/dataAllDeletedToast réécrits FR+AR + nouvelle clé dataScopeEtab.
+- db-url.ts : repli développement local — si aucun Postgres configuré, accepte DATABASE_URL=file: (SQLite) ; production Vercel/Neon inchangée (variables env Postgres prioritaires).
+- Tests API (scripts/test-admin-data-scoping.ts) : 20/20 OK — comptes A=31 élèves/4 classes vs B=1/1 ; purge students par B → A intact ; scope=all par B → A intact (31/4/1), B vidé sauf comptes, niveaux=3 intacts, directeur B conservé ; scope=niveaux → 400 ; all sans VIDER → 400 ; nettoyage automatique des données de test.
+- E2E navigateur (surveillant, FR+AR) : badge périmètre « Lycée Al Massira (ETAB-DEM) / AREF — DP », 9 cartes sans Niveaux, RTL correct. lint 0 erreur.
+
+Stage Summary:
+- Livré : la Gestion des Données (compteurs + vidage table + « Tout vider ») opère désormais exclusivement sur l'établissement AREF/DP du surveillant ou directeur connecté ; les autres établissements sont invisibles et inaltérables ; comptes staff et référentiel niveaux préservés.
+- Note environnement : chaîne Neon perdue avec l'ancien sandbox — app locale relancée sur SQLite de démonstration (schéma temporairement provider=sqlite, rétabli à postgresql dans le commit) ; données démo anonymes (scripts/seed-demo-guide.ts).
+
+---
+Task ID: 18
+Agent: Super Z (main agent)
+Task: Guide d'utilisation en arabe (فصحى مبسطة) pour les enseignants — PDF 8-12 pages, captures réelles de l'application, focus « appel & absences », style officiel vert MÉRS.
+
+Work Log:
+- Cadrage utilisateur : PDF, 8-12 p., captures réelles, Appel & absences, style MÉRS, فصحى مبسطة. Route PDF : brief creative-flow (HTML dir=rtl + html2pdf-next.js --nopaged après timeout Paged.js en RTL).
+- Environnement démo : schéma basculé en SQLite + seed scripts/seed-demo-guide.ts (établissement ETAB-DEM bilingue, 3 niveaux, 3 classes, 30 élèves à noms génériques, enseignant prof@edu.ma/enseignant123 « محمد العلمي », tables de service, créneaux du jour 08:00-10:00 / 11:30-13:00 / 14:30-16:00, séance passée avec 2 absents+1 retard dont 1 justifié) ; scripts/fix-demo-slots.ts pour aligner l'heure des captures.
+- Captures agent-browser 1440×900 en AR (download/guide-enseignant-ar/images/, 8 fichiers) : login, vue d'ensemble avec carte الحصة الجارية, toast de rappel (+14 min sans appel), écran d'appel avec 2 غائب/1 متأخر + compteurs, dialog de justification avec motif, toast de confirmation تم الحفظ بنجاح — 3 غائب/متأخر 5 حاضر, liste حصصي, emploi du temps hebdo.
+- Contenu : 7 chapitres (التعرف على النظام، الدخول، الواجهة الرئيسية، جدول التوقيت وحصصي، تدوين الغياب خطوة بخطوة [6 étapes], التذكير الآلي, أسئلة متكررة ونصائح [6 FAQ + نصائح ذهبية]) + couverture institutionnelle (AREF/DP/établissement, année 2026/2027) + page de clôture 4 étapes.
+- Technique : palette famille verte (#1a3c2a→#d5ead8→#f2f8f4) ≤5 couleurs ; polices locales Cairo + Noto Naskh Arabic (TTF variables, fonts.css externe) ; 720×1020px @page margin 0 ; figures break-inside:avoid ; validations poster_validate PASS (faux positif cover_validate sur les dividers résolu à 6px ; anneaux repositionnés à l'intérieur) ; PDF vectoriel 11 pages ; numérotation pypdf (couverture/clôture non numérotées, corps 1-9) ; métadonnées Title/Author/Creator/Subject ; QA pdf_qa 9 contrôles passés (4 warnings cosmétiques RTL non bloquants).
+- Livrables : /home/z/my-project/download/guide-enseignant-ar/ — guide-enseignant.pdf (11 p., 2,3 Mo), guide-enseignant.html (source éditable), fonts.css, fonts/, images/ (8 captures).
+- scripts/guide-number-meta.py conservé pour régénérer numérotation+métadonnées.
+
+Stage Summary:
+- Livré : guide enseignant AR complet prêt à imprimer/distribuer (PDF+HTML+assets), captures 100 % réelles de l'application en arabe, aucune donnée réelle d'élève (jeu de démonstration anonyme).
+- Environnement : app locale fonctionnelle sur SQLite avec le repli db-url.ts ; pagedjs ajouté en devDependency pour html2pdf-next.js ; scripts/update-templates.js obsolète supprimé (3 erreurs lint require()).
+- Connu : src/app/api/admin/accounts/route.ts (fichier jamais commité d'une session antérieure) contient une comparaison role === "ADMIN" sans effet (UserRole n'a pas ADMIN) — à corriger lors d'une prochaine passe sur la gestion des comptes.

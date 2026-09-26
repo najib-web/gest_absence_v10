@@ -38,7 +38,6 @@ import {
   FileText,
   GraduationCap,
   Layers,
-  ListOrdered,
   Loader2,
   School,
   BookOpen,
@@ -50,6 +49,16 @@ import { toast } from "sonner";
 
 type Counts = Record<string, number>;
 
+type EtablissementInfo = {
+  code: string;
+  nameFr: string;
+  nameAr: string;
+  arefFr: string;
+  arefAr: string;
+  dpFr: string;
+  dpAr: string;
+};
+
 type TableDef = {
   key: string;
   /** Clé i18n du libellé de la table */
@@ -60,6 +69,8 @@ type TableDef = {
 };
 
 // Tables vidables individuellement, dans un ordre logique
+// (le référentiel des niveaux est partagé entre établissements :
+// il n'est pas vidable depuis un compte d'établissement)
 const TABLES: TableDef[] = [
   { key: "absences", labelKey: "dataTableAbsences", icon: <CalendarX className="h-4 w-4" /> },
   { key: "orientations", labelKey: "dataTableOrientations", icon: <FileText className="h-4 w-4" /> },
@@ -70,12 +81,13 @@ const TABLES: TableDef[] = [
   { key: "teachers", labelKey: "dataTableTeachers", icon: <GraduationCap className="h-4 w-4" />, cascade: "teachers" },
   { key: "groups", labelKey: "dataTableGroups", icon: <Layers className="h-4 w-4" /> },
   { key: "classes", labelKey: "dataTableClasses", icon: <School className="h-4 w-4" />, cascade: "linked" },
-  { key: "niveaux", labelKey: "dataTableNiveaux", icon: <ListOrdered className="h-4 w-4" />, cascade: "linked" },
 ];
 
 export function AdminData() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const isAr = locale === "ar";
   const [counts, setCounts] = useState<Counts | null>(null);
+  const [etab, setEtab] = useState<EtablissementInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [pendingScope, setPendingScope] = useState<TableDef | null>(null);
@@ -89,6 +101,7 @@ export function AdminData() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erreur");
       setCounts(data.counts);
+      setEtab(data.etablissement ?? null);
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -108,13 +121,13 @@ export function AdminData() {
       const data = await apiPost("/api/admin/data", { scope, confirm });
       const deleted: Counts = data.deleted || {};
       if (scope === "all") {
-        toast.success(t.dataAllDeletedToast);
-        // Les comptes ont été supprimés : déconnexion explicite.
-        // Les comptes Directeur/Surveillant par défaut seront recréés au prochain login.
-        setTimeout(async () => {
-          await fetch("/api/auth/logout", { method: "POST" });
-          window.location.reload();
-        }, 1200);
+        const total = Object.values(deleted).reduce((a, b) => a + (b || 0), 0);
+        toast.success(
+          (t.dataAllDeletedToast as string).replace("{count}", String(total))
+        );
+        // Les comptes de l'établissement (surveillant/directeur) sont conservés :
+        // pas de déconnexion, simple rafraîchissement des compteurs.
+        await load();
         return;
       }
       const total = Object.values(deleted).reduce((a, b) => a + (b || 0), 0);
@@ -141,6 +154,21 @@ export function AdminData() {
           {t.dataManagement}
         </h2>
         <p className="text-muted-foreground text-sm mt-1">{t.dataManagementDesc}</p>
+        {etab && (
+          <div className="mt-3 inline-flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2 max-w-full">
+            <School className="h-4 w-4 shrink-0 text-primary" />
+            <div className="min-w-0">
+              <div className="text-xs text-muted-foreground">{t.dataScopeEtab}</div>
+              <div className="text-sm font-semibold truncate">
+                {isAr ? etab.nameAr : etab.nameFr}{' '}
+                <span className="text-muted-foreground font-normal">({etab.code})</span>
+              </div>
+              <div className="text-xs text-muted-foreground truncate">
+                {isAr ? etab.arefAr : etab.arefFr} — {isAr ? etab.dpAr : etab.dpFr}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Tables individuelles */}
