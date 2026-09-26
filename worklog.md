@@ -202,3 +202,22 @@ Stage Summary:
 - Livré : guide enseignant AR complet prêt à imprimer/distribuer (PDF+HTML+assets), captures 100 % réelles de l'application en arabe, aucune donnée réelle d'élève (jeu de démonstration anonyme).
 - Environnement : app locale fonctionnelle sur SQLite avec le repli db-url.ts ; pagedjs ajouté en devDependency pour html2pdf-next.js ; scripts/update-templates.js obsolète supprimé (3 erreurs lint require()).
 - Connu : src/app/api/admin/accounts/route.ts (fichier jamais commité d'une session antérieure) contient une comparaison role === "ADMIN" sans effet (UserRole n'a pas ADMIN) — à corriger lors d'une prochaine passe sur la gestion des comptes.
+
+---
+Task ID: 19
+Agent: Super Z (main agent)
+Task: « j'ai pas trouvé le guide » puis « regenere de nouveau » — régénération complète du guide enseignant AR et dépôt d'une copie à la racine de download/.
+
+Work Log:
+- Skill pdf rechargé + brief creative-flow, fonts.md et typesetting/overflow.md relus conformément au protocole.
+- Vérification des sources : guide-enseignant.html (33 Ko), fonts.css + Cairo/NotoNaskh variables, 8 captures AR — tous intacts dans download/guide-enseignant-ar/.
+- poster_validate.py check-html : PASS (0 erreur, 0 avertissement, cover_validate sans collision).
+- Régénération : html2pdf-next.js --nopaged (Paged.js incompatible RTL) 720×1020px → 11 pages, 1,6 Mo, 16 figures.
+- pdf_qa.py --no-tables : WARN non bloquant (faux positifs d'extraction RTL « — » en début de ligne ; marges p11 = page de clôture décorative) ; 8 contrôles passés dont polices intégrées, zéro débordement, zéro page blanche, couverture full-bleed.
+- scripts/guide-number-meta.py : numérotation corps 1-9 + métadonnées (Title arabe, Author/Creator Z.ai) → 2,3 Mo.
+- Inspection visuelle pypdfium2 (p1 couverture, p4 contenu + capture, p11 clôture) : rendu parfait ; texte arabe 0 U+FFFD via pymupdf (extract_text pypdf plante sur KeyError 'bbox' avec les polices variables — limitation pypdf, pas du document).
+- Copie livrée à la racine : download/guide-utilisation-enseignant-ar.pdf (2,3 Mo, 11 pages).
+
+Stage Summary:
+- Guide enseignant AR régénéré à l'identique du pipeline validé (11 pages, vectoriel, numéroté, métadonnées complètes) et exposé en double emplacement : download/guide-utilisation-enseignant-ar.pdf (racine, nom clair) et download/guide-enseignant-ar/guide-enseignant.pdf (dossier complet avec HTML source, polices, images).
+- Sources restent éditables : modifier guide-enseignant.html puis relancer html2pdf-next.js --nopaged + guide-number-meta.py.
