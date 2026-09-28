@@ -296,3 +296,24 @@ Stage Summary:
 - scripts/test-build-fix.ts conservé pour régresser les endpoints export/modèles.
 
 Complément Task 23 : commit final amendé 5f43644 (bruit tsconfig de la build de vérification annulé). Pas de remote git dans le sandbox → patch livré : download/0001-fix-build-vercel-*.patch (applicable sur f2d1a3e via git am, ou pousser simplement main).
+
+---
+Task ID: 24
+Agent: Super Z (main agent)
+Task: « produire un guide d'utilisation pour l'enseignant en francais et arabe » — guide bilingue FR/AR (PDF), captures réelles de l'application.
+
+Work Log:
+- Environnement restauré (sandbox réinitialisé une nouvelle fois : DB absente) : prisma db push + generate (schema.sqlite.prisma) + seed-demo-guide + serveur dev OK. Les anciens livrables des Tasks 18-20 (download/guide-enseignant-ar/, PDF/docx racine) ont disparu ; seuls guide-word-content.js et des captures de vérification subsistaient → reconstruction complète.
+- Polices : Cairo + Noto Naskh Arabic (TTF variables) re-téléchargées de Google Fonts (réseau OK) dans download/guide-enseignant-fr-ar/fonts/ + fonts.css EXTERNE (le validateur poster_validate flagge les @font-face inline en FONT_NO_FALLBACK — pattern Task 18).
+- Captures agent-browser 1440×900 en AR avec ASTUCE FUSEAU : daemon relancé sous TZ=Australia/Darwin (UTC+9:30) → horloge navigateur mardi 08:0x ; créneaux démo passés en dayOfWeek=2 (scripts/fix-demo-slots-task24.ts : 08:00-10:00 / 12:00-13:30 / 14:30-16:00). 8 captures : login (x2, bannière PWA fermée), toast rappel (x2, régénéré via scripts/undo-attendance-task24.ts attendanceDone=false puis restauré true — attention le sed du filtre a besoin que WHERE= false / SET= true), accueil, appel (2 غائب+1 متأخر), dialog السبب (motif « مرض مع شهادة طبية »), confirmation تم الحفظ بنجاح, حصصي, emploi du temps.
+- Guide bilingue : download/guide-enseignant-fr-ar/guide-enseignant-fr-ar.html (794×1123, route creative-flow + html2pdf-next.js --nopaged, Paged.js incompatible RTL). Layout : colonnes parallèles FR (Cairo, LTR) | AR (Noto Naskh, RTL) — .duo/.feature/.step, figures pleine largeur avec légendes bilingues, callouts, tableaux bilingues, FAQ cartes. Palette verte MÉRS (1a3c2a/2d6b4a/d5ead8/f2f8f4 + neutre). Couverture institutionnelle bilingue (ancre Y absolues, règles espacement ≥1U des lignes décoratives) + page de clôture fixe (récap 4 étapes).
+- Contenu : 7 chapitres (découvrir le système + rôles, connexion, page d'accueil, emploi du temps/حصصي, saisie en 6 étapes, rappel automatique, 6 FAQ + conseils d'or) + glossaire bilingue 7 termes (ajouté pour porter p9 à ~90 % de remplissage) + clôture. ~2 300 mots. Toutes les captures datent du même jour simulé (الثلاثاء 29 شتنبر 2026).
+- Validations : poster_validate → erreurs FONT_NO_FALLBACK (résolues via fonts.css externe) et COVER_TEXT_OVERLAP (Pass 1 résolu : side-tick/bottom-rule supprimés, inst-block descendu ; Pass 2 = faux positifs balises <b> inline vs bloc parent — cover_validate conçu pour couvertures absolues, non pour documents fluides, cf. Tasks 18/19). pdf_qa --no-tables : PASS complet (10 contrôles, 0 warning). U+FFFD : 0. Inspection visuelle des 10 pages rendues : aucune anomalie.
+- scripts/guide-number-meta-task24.py : numérotation corps 1-8 (couverture/clôture non numérotées) + métadonnées bilingues (Title, Author Z.ai, Subject). PDF final vectoriel 10 pages, 2,3 Mo.
+- Livrables : download/guide-utilisation-enseignant-fr-ar.pdf (racine) + download/guide-enseignant-fr-ar/ (PDF, HTML source éditable, fonts/, images/ 8 captures).
+
+Stage Summary:
+- Livré : guide d'utilisation enseignant BILINGUE français-arabe, 10 pages A4, colonnes FR|AR parallèles, 8 captures réelles de l'application (interface AR), glossaire, prêt à imprimer/distribuer. PDF vectoriel (texte sélectionnable).
+- Sources éditables : modifier guide-enseignant-fr-ar.html puis relancer html2pdf-next.js --nopaged + guide-number-meta-task24.py.
+- Scripts réutilisables : fix-demo-slots-task24.ts (créneaux dow=2 pour captures), undo-attendance-task24.ts (bascule attendanceDone pour regénérer le toast), render-guide-task24.py (rendu d'inspection + scan U+FFFD).
+- Astuce à retenir : TZ=Australia/Darwin sur le daemon agent-browser pour des captures à heures scolaires quand le sandbox est en soirée UTC ; la logique « séance en cours » de l'app est 100 % côté navigateur.
