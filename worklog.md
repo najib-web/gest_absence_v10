@@ -317,3 +317,18 @@ Stage Summary:
 - Sources éditables : modifier guide-enseignant-fr-ar.html puis relancer html2pdf-next.js --nopaged + guide-number-meta-task24.py.
 - Scripts réutilisables : fix-demo-slots-task24.ts (créneaux dow=2 pour captures), undo-attendance-task24.ts (bascule attendanceDone pour regénérer le toast), render-guide-task24.py (rendu d'inspection + scan U+FFFD).
 - Astuce à retenir : TZ=Australia/Darwin sur le daemon agent-browser pour des captures à heures scolaires quand le sandbox est en soirée UTC ; la logique « séance en cours » de l'app est 100 % côté navigateur.
+
+---
+Task ID: 24-bis
+Agent: Super Z (main agent)
+Task: « créer un sous dossier formation qui contient le guide » — réorganisation des livrables du guide enseignant.
+
+Work Log:
+- Constat initial : Task 24 déjà livrée en 2 emplacements avec PDF dupliqué (racine + guide-enseignant-fr-ar/, md5 identique ac8f4b8a…).
+- Créé download/formation/ et déplacé : guide-utilisation-enseignant-fr-ar.pdf (PDF principal), guide-enseignant-fr-ar.html (source éditable), fonts/ (Cairo + Noto Naskh), images/ (8 captures). HTML conservé au niveau des dossiers fonts/ et images/ → références relatives intactes (vérifiées : href="fonts/fonts.css", src="images/0X-*.png").
+- Supprimé le doublon PDF interne et l'ancien dossier vide guide-enseignant-fr-ar/ (plus aucune duplication dans download/).
+- Ajouté download/formation/README.md : structure, contenu du guide, procédure de mise à jour (HTML → html2pdf-next.js --nopaged → guide-number-meta-task24.py).
+- Vérification pymupdf post-déplacement : 10 pages, métadonnées bilingues (Title/Author), texte FR/AR extractible, 0 U+FFFD.
+
+Stage Summary:
+- Livrable unique : download/formation/ = guide PDF 10 pages (2,3 Mo) + source HTML éditable + fonts/ + images/ + README explicatif. Structure download/ épurée (ancien dossier guide supprimé).
