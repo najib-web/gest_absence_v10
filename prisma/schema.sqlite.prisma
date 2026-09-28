@@ -1,0 +1,307 @@
+// Prisma schema for student absence management system (FR/AR)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// =====================
+// Users & Auth
+// =====================
+
+// SUPERADMIN : administration centrale (crée les établissements + leurs directeurs)
+// DIRECTEUR / SURVEILLANT / ENSEIGNANT : rattachés à un établissement (AREF + DP)
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  name           String
+  password       String
+  role           String   @default("ENSEIGNANT") // SUPERADMIN | DIRECTEUR | SURVEILLANT | ENSEIGNANT
+  etablissementId String?
+  etablissement  Etablissement? @relation(fields: [etablissementId], references: [id], onDelete: SetNull)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  teacher   Teacher?
+}
+
+// =====================
+// Établissements (administration centrale)
+// =====================
+// L'admin backend crée les établissements avec leur AREF (Académie Régionale
+// d'Éducation et de Formation) et leur DP (Direction Provinciale), et affecte
+// un compte Directeur. Surveillants, enseignants et élèves créés sous ce
+// directeur héritent automatiquement de l'AREF et de la DP.
+model Etablissement {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  nameFr    String
+  nameAr    String
+  arefFr    String
+  arefAr    String
+  dpFr      String
+  dpAr      String
+  address   String?
+  phone     String?
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users    User[]
+  teachers Teacher[]
+  students Student[]
+  classes  Classe[]
+}
+
+// =====================
+// School structure
+// =====================
+
+model Niveau {
+  id        String   @id @default(cuid())
+  code      String   @unique // e.g. "TC", "1BAC", "2BAC"
+  labelFr   String
+  labelAr   String
+  order     Int      @default(0)
+  classes   Classe[]
+}
+
+model Classe {
+  id        String   @id @default(cuid())
+  code      String   @unique // e.g. "TCSF-1"
+  labelFr   String
+  labelAr   String
+  niveauId  String
+  niveau    Niveau   @relation(fields: [niveauId], references: [id], onDelete: Cascade)
+  etablissementId String?
+  etablissement Etablissement? @relation(fields: [etablissementId], references: [id], onDelete: SetNull)
+  capacity  Int      @default(40)
+  createdAt DateTime @default(now())
+
+  students   Student[]
+  groups     Groupe[]
+  services   ServiceTable[]
+  sessions   Session[]
+  slots      ServiceSlot[]
+}
+
+model Groupe {
+  id        String   @id @default(cuid())
+  code      String   // e.g. "G1"
+  labelFr   String
+  labelAr   String
+  classeId  String
+  classe    Classe   @relation(fields: [classeId], references: [id], onDelete: Cascade)
+  students  Student[]
+  services  ServiceTable[]
+  sessions  Session[]
+  slots     ServiceSlot[]
+
+  @@unique([code, classeId])
+}
+
+// =====================
+// Students
+// =====================
+
+model Student {
+  id         String   @id @default(cuid())
+  codeMassar String   @unique
+  firstName  String
+  lastName   String
+  firstNameAr String?
+  lastNameAr  String?
+  parentPhone String?
+  classeId   String
+  classe     Classe   @relation(fields: [classeId], references: [id], onDelete: Cascade)
+  etablissementId String?
+  etablissement Etablissement? @relation(fields: [etablissementId], references: [id], onDelete: SetNull)
+  groupId    String?
+  groupe     Groupe?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  absences     Absence[]
+  orientations Orientation[]
+}
+
+// =====================
+// Teachers & Service Tables
+// =====================
+
+model Teacher {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName String
+  lastName  String
+  firstNameAr String?
+  lastNameAr  String?
+  phone     String?
+  matiere   String   // subject taught (e.g. "Mathématiques")
+  matiereAr String?
+  ppr       String?  // numéro PPR (professeur)
+  signature String?  // signature manuscrite de l'enseignant (data URL)
+  etablissementId String?
+  etablissement Etablissement? @relation(fields: [etablissementId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+
+  services     ServiceTable[]
+  sessions     Session[]
+  slots        ServiceSlot[]
+  orientations Orientation[]
+  dismissals   AttendanceDismissal[]
+}
+
+// "Table de service" — a single assignment: Teacher X teaches Classe Y (optionally Groupe Z) for subject W
+model ServiceTable {
+  id         String   @id @default(cuid())
+  teacherId  String
+  teacher    Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  classeId   String
+  classe     Classe   @relation(fields: [classeId], references: [id], onDelete: Cascade)
+  groupId    String?
+  groupe     Groupe?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  subject    String
+  subjectAr  String?
+  hoursPerWeek Int   @default(2)
+  createdAt  DateTime @default(now())
+
+  sessions   Session[]
+
+  @@unique([teacherId, classeId, groupId, subject])
+}
+
+// "Grille horaire hebdomadaire" — one cell of the weekly service table
+// dayOfWeek: 1 = Lundi ... 6 = Samedi ; startMin/endMin: minutes since midnight (480 = 08:00)
+model ServiceSlot {
+  id        String   @id @default(cuid())
+  teacherId String
+  teacher   Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  dayOfWeek Int      // 1 = Lundi ... 6 = Samedi (dimanche = 0, non scolaire)
+  startMin  Int      // ex: 480 = 08:00
+  endMin    Int      // ex: 600 = 10:00
+  classeId  String
+  classe    Classe   @relation(fields: [classeId], references: [id], onDelete: Cascade)
+  groupId   String?
+  groupe    Groupe?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  subject   String
+  subjectAr String?
+  createdAt DateTime @default(now())
+
+  dismissals AttendanceDismissal[]
+
+  @@unique([teacherId, dayOfWeek, startMin])
+  @@index([dayOfWeek, startMin])
+}
+
+// Notification « appel non fait » supprimée manuellement par le staff
+// (surveillant/directeur) pour une occurrence de séance (slot + jour).
+// La suppression automatique est gérée par Session.attendanceDone ;
+// ce modèle couvre la suppression manuelle (ex : appel fait sur papier,
+// enseignant absent, séance annulée).
+model AttendanceDismissal {
+  id            String      @id @default(cuid())
+  slotId        String
+  slot          ServiceSlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  dateKey       String      // jour de la séance au format local "YYYY-MM-DD"
+  teacherId     String
+  teacher       Teacher     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  dismissedById String?     // User (surveillant/directeur) ayant supprimé la notification
+  createdAt     DateTime    @default(now())
+
+  @@unique([slotId, dateKey])
+  @@index([dateKey])
+}
+
+// =====================
+// Sessions & Absences
+// =====================
+
+model Session {
+  id          String   @id @default(cuid())
+  teacherId   String
+  teacher     Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  classeId    String
+  classe      Classe   @relation(fields: [classeId], references: [id], onDelete: Cascade)
+  groupId     String?
+  groupe      Groupe?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  serviceId   String?
+  service     ServiceTable? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  date        DateTime
+  subject     String
+  subjectAr   String?
+  createdAt   DateTime @default(now())
+
+  // Suivi de l'appel : positionné dès que les absences de la séance sont
+  // enregistrées (même si « tout présent ») — sert aux rappels sonores
+  // enseignant (5 min après le début) et aux notifications surveillant.
+  attendanceDone Boolean  @default(false)
+  attendanceAt   DateTime?
+
+  absences    Absence[]
+  orientations Orientation[]
+}
+
+model Absence {
+  id         String   @id @default(cuid())
+  studentId  String
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  sessionId  String
+  session    Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  status     String   @default("ABSENT") // ABSENT | RETARD | PRESENT (rare to record present)
+  justified  Boolean  @default(false)
+  oriented   Boolean  @default(false) // sent to surveillant for justification
+  reason     String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([studentId, sessionId])
+}
+
+// =====================
+// Settings (thresholds etc.)
+// =====================
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique // e.g. "absenceThreshold"
+  value     String   // stored as string, parsed by the API layer
+  updatedAt DateTime @updatedAt
+}
+
+// =====================
+// Orientations & Reports
+// =====================
+// source: "TEACHER"  → rapport rédigé par un enseignant et envoyé au surveillant
+//         "SEUIL"    → orientation décidée par le surveillant (seuil d'absences dépassé)
+//         "MANUEL"   → orientation décidée par le surveillant sans seuil
+// status: "PENDING" (en attente de traitement) | "RESOLVED" (traité)
+model Orientation {
+  id          String    @id @default(cuid())
+  studentId   String
+  student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  source      String    @default("TEACHER")
+  teacherId   String?
+  teacher     Teacher?  @relation(fields: [teacherId], references: [id], onDelete: SetNull)
+  sessionId   String?
+  session     Session?  @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  title       String
+  content     String
+  signature   String?
+  status      String    @default("PENDING")
+  thresholdAtCreation Int?
+  // Palette de mise en forme choisie à la rédaction (police, taille, G/I/S, couleur) — JSON
+  styleJson   String?
+  resolutionNote String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  resolvedAt  DateTime?
+
+  @@index([studentId])
+  @@index([status])
+}

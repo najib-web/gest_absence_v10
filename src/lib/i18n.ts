@@ -382,6 +382,10 @@ export const translations = {
     exportXlsx: "Excel (.xlsx)",
     exportCsv: "CSV (.csv)",
     noSlotsToExport: "Aucune séance à exporter",
+    // Export liste complète des élèves (onglet Élèves)
+    importTemplate: "Modèle d'import",
+    exportComplete: "Liste complète exportée",
+    noStudentsToExport: "Aucun élève à exporter",
     // Gestion des données (vider tables / base)
     dataManagement: "Gestion des Données",
     dataManagementDesc: "Vider une table ou les données de votre établissement — action irréversible, strictement limitée au périmètre de votre établissement",
@@ -817,6 +821,10 @@ export const translations = {
     exportXlsx: "Excel (.xlsx)",
     exportCsv: "CSV (.csv)",
     noSlotsToExport: "لا توجد حصص للتصدير",
+    // تصدير القائمة الكاملة للتلاميذ (تبويب التلاميذ)
+    importTemplate: "نموذج الاستيراد",
+    exportComplete: "تم تصدير القائمة الكاملة",
+    noStudentsToExport: "لا يوجد تلاميذ للتصدير",
     // إدارة البيانات (إفراغ الجداول / قاعدة البيانات)
     dataManagement: "إدارة البيانات",
     dataManagementDesc: "إفراغ جدول أو بيانات مؤسستك — عملية لا رجعة فيها، محصورة حصرا في نطاق مؤسستك",

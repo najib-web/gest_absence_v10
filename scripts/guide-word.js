@@ -1,5 +1,6 @@
 // Génération version Word du guide enseignant (arabe RTL)
 // Route Create — recette R1 (Pure Paragraph Left) adaptée RTL + palette verte MÉRS du guide
+/* eslint-disable @typescript-eslint/no-require-imports */
 const {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
   ImageRun, Header, Footer, PageNumber, NumberFormat, AlignmentType,

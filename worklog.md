@@ -241,3 +241,22 @@ Stage Summary:
 - Livré : download/guide-utilisation-enseignant-ar.docx — version Word 100 % éditable du guide (12 pages : couverture verte pleine page, sommaire auto, 7 chapitres + خاتمة, 8 captures réelles, callouts encadrés, en-tête/pieds paginés romain/arabe).
 - Scripts réutilisables : scripts/guide-word.js + guide-word-content.js (éditer le contenu puis relancer) + guide-word-pagenum.py (post-traitement obligatoire après régénération).
 - Polices cibles Windows/Office : Traditional Arabic + Sakkal Majalla (substitution automatique sinon).
+
+---
+Task ID: 21
+Agent: Super Z (main agent)
+Task: « pour l'onglet des élèves le bouton télécharger permet de charger la liste complet des élèves » — le bouton Télécharger de l'onglet Élèves exporte désormais la liste complète des élèves.
+
+Work Log:
+- Diagnostic : le bouton « Télécharger » téléchargeait le modèle d'import statique (ListEleve_20260905.xlsx), pas la liste.
+- admin-students.tsx : nouvelle fonction exportStudents() — XLSX client-side (pattern grille horaire) via XLSX.writeFile ; liste COMPLÈTE (students, indépendante des filtres UI) ; 13 colonnes : Code Massar, Nom, Prénom, Nom (arabe), Prénom (arabe), Téléphone parent, Classe, Groupe, Niveau, Absences, Retards, Non justifiés, Orientations ; largeurs de colonnes ; vue RTL du classeur si locale AR ; nom de fichier ListeEleves_YYYY-MM-DD.xlsx ; toast « Liste complète exportée · N Élèves ».
+- En-têtes FR/AR codés en dur alignés sur les alias du parseur parseStudentExcel (src/lib/excel.ts) → fichier exporté directement ré-importable (round-trip). Attention : les libellés i18n AR (« النسب (بالعربية) ») ne matchent PAS le parseur (parenthèses) — d'où le codage en dur (« النسب بالعربية »).
+- Ancien modèle d'import conservé : nouveau bouton séparé « Modèle d'import » (FileSpreadsheet, libellé masqué < md).
+- i18n : +3 clés FR/AR (importTemplate, exportComplete, noStudentsToExport).
+- ENVIRONNEMENT RESTAURÉ (sandbox réinitialisé : DB SQLite absente + .env pointant vers file:/home/z/my-project/db/custom.db) : prisma/schema.sqlite.prisma créé (copie du schéma avec provider sqlite, schéma commité postgresql intact) → prisma db push + generate --schema prisma/schema.sqlite.prisma → bun scripts/seed-demo-guide.ts (ETAB-DEM, 30 élèves, comptes prof@/admin@/directeur@/surveillant@edu.ma). Le serveur doit être redémarré après generate (ancien client postgres en mémoire → EADDRINUSE si pkill "bun run dev" insuffisant, utiliser pkill -f next/bun).
+- scripts/guide-word.js : /* eslint-disable @typescript-eslint/no-require-imports */ (4 erreurs lint héritées Task 20).
+- Tests : scripts/test-students-export.ts (15/15 OK — API complète avec stats/classe.niveau/groupe + round-trip parseur FR et AR + fidélité 100 % des 30 lignes). E2E agent-browser : login surveillant → onglet Élèves → clic Télécharger → toast « Liste complète exportée · 30 Élèves » + fichier réel téléchargé (~/Downloads/ListeEleves_2026-09-28.xlsx : 31 lignes, en-têtes et données AR corrects) → captures scripts/inspect/e2e-export-students.png. Lint projet propre. Aucune erreur dev.log.
+
+Stage Summary:
+- Livré : bouton Télécharger (onglet Élèves) = export Excel de la liste complète des élèves de l'établissement (scoping serveur inchangé), ré-importable tel quel, FR/AR avec vue RTL ; bouton « Modèle d'import » séparé pour le modèle ListEleve.
+- Scripts réutilisables : scripts/test-students-export.ts (regression export/round-trip), prisma/schema.sqlite.prisma (à réutiliser si le sandbox perd à nouveau la DB : db push + generate + seed-demo-guide puis restart serveur).

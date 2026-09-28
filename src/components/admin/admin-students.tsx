@@ -38,6 +38,7 @@ import {
   Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
+import * as XLSX from "xlsx";
 import {
   Dialog,
   DialogContent,
@@ -69,7 +70,7 @@ interface ClasseToCreate {
 }
 
 export function AdminStudents() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [search, setSearch] = useState("");
   const [classeFilter, setClasseFilter] = useState<string>("all");
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -171,6 +172,43 @@ export function AdminStudents() {
     a.click();
   }
 
+  function exportStudents() {
+    // Liste COMPLÈTE des élèves de l'établissement (indépendante des filtres UI).
+    // En-têtes FR/AR alignés sur les alias du parseur d'import (src/lib/excel.ts)
+    // → le fichier exporté est directement ré-importable (round-trip).
+    if (students.length === 0) {
+      toast.error(t.noStudentsToExport);
+      return;
+    }
+    const isAr = locale === "ar";
+    const headers = isAr
+      ? ["الرمز المساري", "النسب", "الاسم الشخصي", "النسب بالعربية", "الاسم بالعربية", "هاتف ولي الأمر", "القسم", "المجموعة", "المستوى", "الغيابات", "التأخرات", "غير المبررة", "التوجيهات"]
+      : ["Code Massar", "Nom", "Prénom", "Nom (arabe)", "Prénom (arabe)", "Téléphone parent", "Classe", "Groupe", "Niveau", "Absences", "Retards", "Non justifiés", "Orientations"];
+    const body = students.map((s) => [
+      s.codeMassar,
+      s.lastName,
+      s.firstName,
+      s.lastNameAr || "",
+      s.firstNameAr || "",
+      s.parentPhone || "",
+      s.classe?.code ?? "",
+      s.groupe?.code ?? "",
+      s.classe?.niveau ? (isAr ? s.classe.niveau.labelAr : s.classe.niveau.labelFr) : "",
+      s.stats.totalAbs,
+      s.stats.totalLate,
+      s.stats.unjustified,
+      s.stats.oriented,
+    ]);
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...body]);
+    ws["!cols"] = [14, 16, 16, 18, 18, 16, 10, 10, 22, 10, 10, 12, 12].map((wch) => ({ wch }));
+    const wb = XLSX.utils.book_new();
+    if (isAr) (wb as any).Workbook = { Views: [{ RTL: true }] };
+    XLSX.utils.book_append_sheet(wb, ws, isAr ? "التلاميذ" : "Élèves");
+    const fname = `ListeEleves_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    XLSX.writeFile(wb, fname);
+    toast.success(`${t.exportComplete} · ${students.length} ${t.students}`);
+  }
+
   async function deleteStudent(id: string) {
     if (!confirm(t.confirmDelete)) return;
     try {
@@ -190,9 +228,13 @@ export function AdminStudents() {
           <p className="text-sm text-muted-foreground">{t.studentList}</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={downloadTemplate}>
+          <Button variant="outline" size="sm" onClick={exportStudents} title={t.exportComplete}>
             <Download className="h-4 w-4 me-2" />
             {t.download}
+          </Button>
+          <Button variant="outline" size="sm" onClick={downloadTemplate} title={t.importTemplate}>
+            <FileSpreadsheet className="h-4 w-4 me-2" />
+            <span className="hidden md:inline">{t.importTemplate}</span>
           </Button>
           <Button variant="outline" size="sm" onClick={() => { setDialogStudent(null); setDialogOpen(true); }}>
             <Plus className="h-4 w-4 me-2" />
