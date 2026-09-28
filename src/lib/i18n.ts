@@ -386,6 +386,8 @@ export const translations = {
     importTemplate: "Modèle d'import",
     exportComplete: "Liste complète exportée",
     noStudentsToExport: "Aucun élève à exporter",
+    exportAll: "Liste complète (Excel)",
+    exportFiltered: "Liste filtrée (Excel)",
     // Gestion des données (vider tables / base)
     dataManagement: "Gestion des Données",
     dataManagementDesc: "Vider une table ou les données de votre établissement — action irréversible, strictement limitée au périmètre de votre établissement",
@@ -825,6 +827,8 @@ export const translations = {
     importTemplate: "نموذج الاستيراد",
     exportComplete: "تم تصدير القائمة الكاملة",
     noStudentsToExport: "لا يوجد تلاميذ للتصدير",
+    exportAll: "القائمة الكاملة (Excel)",
+    exportFiltered: "القائمة حسب التصفية (Excel)",
     // إدارة البيانات (إفراغ الجداول / قاعدة البيانات)
     dataManagement: "إدارة البيانات",
     dataManagementDesc: "إفراغ جدول أو بيانات مؤسستك — عملية لا رجعة فيها، محصورة حصرا في نطاق مؤسستك",

@@ -14,6 +14,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -172,11 +178,13 @@ export function AdminStudents() {
     a.click();
   }
 
-  function exportStudents() {
-    // Liste COMPLÈTE des élèves de l'établissement (indépendante des filtres UI).
-    // En-têtes FR/AR alignés sur les alias du parseur d'import (src/lib/excel.ts)
-    // → le fichier exporté est directement ré-importable (round-trip).
-    if (students.length === 0) {
+  function exportStudents(scope: "all" | "filtered") {
+    // Export Excel des élèves — en-têtes FR/AR alignés sur les alias du parseur
+    // d'import (src/lib/excel.ts) → fichier directement ré-importable (round-trip).
+    // scope "all" = liste complète de l'établissement (indépendante des filtres UI) ;
+    // scope "filtered" = filtres actifs (recherche + classe sélectionnée).
+    const rows = scope === "all" ? students : filtered;
+    if (rows.length === 0) {
       toast.error(t.noStudentsToExport);
       return;
     }
@@ -184,7 +192,7 @@ export function AdminStudents() {
     const headers = isAr
       ? ["الرمز المساري", "النسب", "الاسم الشخصي", "النسب بالعربية", "الاسم بالعربية", "هاتف ولي الأمر", "القسم", "المجموعة", "المستوى", "الغيابات", "التأخرات", "غير المبررة", "التوجيهات"]
       : ["Code Massar", "Nom", "Prénom", "Nom (arabe)", "Prénom (arabe)", "Téléphone parent", "Classe", "Groupe", "Niveau", "Absences", "Retards", "Non justifiés", "Orientations"];
-    const body = students.map((s) => [
+    const body = rows.map((s) => [
       s.codeMassar,
       s.lastName,
       s.firstName,
@@ -204,9 +212,16 @@ export function AdminStudents() {
     const wb = XLSX.utils.book_new();
     if (isAr) (wb as any).Workbook = { Views: [{ RTL: true }] };
     XLSX.utils.book_append_sheet(wb, ws, isAr ? "التلاميذ" : "Élèves");
-    const fname = `ListeEleves_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    // Nom de fichier : complet, ou filtré avec le code classe si une classe est sélectionnée
+    const date = new Date().toISOString().slice(0, 10);
+    const classeCode =
+      scope === "filtered" && classeFilter !== "all"
+        ? classes.find((c) => c.id === classeFilter)?.code?.replace(/\s+/g, "_")
+        : null;
+    const scopeName = scope === "all" ? "" : classeCode || "filtre";
+    const fname = `ListeEleves${scopeName ? "_" + scopeName : ""}_${date}.xlsx`;
     XLSX.writeFile(wb, fname);
-    toast.success(`${t.exportComplete} · ${students.length} ${t.students}`);
+    toast.success(`${scope === "all" ? t.exportComplete : t.exportFiltered} · ${rows.length} ${t.students}`);
   }
 
   async function deleteStudent(id: string) {
@@ -228,10 +243,27 @@ export function AdminStudents() {
           <p className="text-sm text-muted-foreground">{t.studentList}</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={exportStudents} title={t.exportComplete}>
-            <Download className="h-4 w-4 me-2" />
-            {t.download}
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" title={t.export}>
+                <Download className="h-4 w-4 me-2" />
+                {t.download}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => exportStudents("all")}>
+                <Download className="h-4 w-4 me-2" />
+                {t.exportAll}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => exportStudents("filtered")}
+                disabled={filtered.length === 0}
+              >
+                <FileSpreadsheet className="h-4 w-4 me-2" />
+                {t.exportFiltered} ({filtered.length})
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button variant="outline" size="sm" onClick={downloadTemplate} title={t.importTemplate}>
             <FileSpreadsheet className="h-4 w-4 me-2" />
             <span className="hidden md:inline">{t.importTemplate}</span>

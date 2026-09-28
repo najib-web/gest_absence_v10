@@ -260,3 +260,17 @@ Work Log:
 Stage Summary:
 - Livré : bouton Télécharger (onglet Élèves) = export Excel de la liste complète des élèves de l'établissement (scoping serveur inchangé), ré-importable tel quel, FR/AR avec vue RTL ; bouton « Modèle d'import » séparé pour le modèle ListEleve.
 - Scripts réutilisables : scripts/test-students-export.ts (regression export/round-trip), prisma/schema.sqlite.prisma (à réutiliser si le sandbox perd à nouveau la DB : db push + generate + seed-demo-guide puis restart serveur).
+
+---
+Task ID: 22
+Agent: Super Z (main agent)
+Task: « un export respectant les filtres actifs une seule classe » — export des élèves respectant les filtres actifs (recherche + classe), en complément de la liste complète.
+
+Work Log:
+- admin-students.tsx : exportStudents(scope: "all" | "filtered") — même format 13 colonnes round-trip ; scope "filtered" = tableau `filtered` (recherche + classeFilter). Nom de fichier : ListeEleves_DATE.xlsx (complet) / ListeEleves_<CODE_CLASSE>_DATE.xlsx si classe sélectionnée, sinon _filtre_ ; toast distinct (exportComplete / exportFiltered) avec le nombre d'élèves exportés.
+- Bouton Télécharger → DropdownMenu (shadcn) : « Liste complète (Excel) » / « Liste filtrée (Excel) (N) » avec compteur live, désactivé si 0 résultat. En-têtes FR/AR inchangés (compatibilité parseur conservée).
+- i18n : +2 clés FR/AR (exportAll, exportFiltered).
+- E2E agent-browser : filtre TCSF-1 → menu « Liste filtrée (14) » → fichier ListeEleves_TCSF-1_2026-09-28.xlsx (15 lignes = 1 en-tête + 14 élèves, 100 % TCSF-1) ; « Liste complète » → 30 élèves / 3 classes, toast OK. Test régression scripts/test-students-export.ts : tous OK. Lint propre.
+
+Stage Summary:
+- Livré : menu d'export à deux options sous « Télécharger » (onglet Élèves) — liste complète de l'établissement OU export filtré (recherche + une classe), fichier nommé avec le code de la classe, format ré-importable inchangé.
