@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser, isSupervisor } from "@/lib/auth";
+import { getCurrentUser, isStaff } from "@/lib/auth";
 
 const MIN_PASSWORD_LENGTH = 4;
 
@@ -8,7 +8,7 @@ const MIN_PASSWORD_LENGTH = 4;
 // Le surveillant définit/modifie le mot de passe d'authentification d'un enseignant.
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser(req);
-  if (!user || !isSupervisor(user)) {
+  if (!user || !isStaff(user.role)) {
     return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
   }
   const { id } = await params;

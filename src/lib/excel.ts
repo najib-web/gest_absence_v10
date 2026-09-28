@@ -145,6 +145,27 @@ function readSheetRows(buffer: ArrayBuffer): any[][] {
 }
 
 // ============
+// Grille hebdomadaire (export + modèles)
+// ============
+
+/**
+ * Contenu d'une case de la grille horaire hebdomadaire :
+ * « Classe | Groupe | Enseignant | Matière » — le groupe est omis lorsque la
+ * séance concerne la classe entière. Format documenté dans l'onglet « Notice »
+ * du modèle services (cf. /api/templates/services).
+ */
+export function buildServiceCellText(opts: {
+  classe: string;
+  groupe?: string | null;
+  teacher: string;
+  matiere: string;
+}): string {
+  return [opts.classe, opts.groupe?.trim() || "", opts.teacher, opts.matiere]
+    .filter((part) => part !== "")
+    .join(" | ");
+}
+
+// ============
 // Teachers import
 // ============
 

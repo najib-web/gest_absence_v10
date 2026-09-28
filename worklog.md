@@ -274,3 +274,25 @@ Work Log:
 
 Stage Summary:
 - Livré : menu d'export à deux options sous « Télécharger » (onglet Élèves) — liste complète de l'établissement OU export filtré (recherche + une classe), fichier nommé avec le code de la classe, format ré-importable inchangé.
+
+---
+Task ID: 23
+Agent: Super Z (main agent)
+Task: « lorsque je veux déployer la solution j'avais ces erreurs » — build Vercel en échec (Turbopack : 6 erreurs d'imports) — diagnostic et correction.
+
+Work Log:
+- Cause racine : Turbopack build compile TOUTES les routes (le dev ne compile qu'à la demande) → révèle des imports d'exports qui n'ont JAMAIS existé : isSupervisor (routes commitées dès 0cc3294, jamais définie dans auth.ts) et buildServiceCellText (imports ajoutés au commit 4a1cbdd sans implémentation dans excel.ts).
+- excel.ts : ajout de buildServiceCellText({classe, groupe?, teacher, matiere}) → « Classe | Groupe | Enseignant | Matière » (groupe omis si absent), format documenté dans l'onglet Notice du modèle services.
+- isSupervisor(user) → isStaff(user.role) dans service-slots/export, templates/[type], teachers/[id]/password (standard établi Task 17 : Surveillant + Directeur).
+- Code mort supprimé (git rm) : api/database/reset (wipe global NON scoppé = trou de sécurité latent, remplacé par admin/data Task 17), components/admin/admin-database.tsx (plus rendu, 12+ erreurs TS), api/admin/accounts (logique rôle « ADMIN » inexistant, remplacée par api/director/accounts). Aucune référence résiduelle (rg).
+- i18n : +24 clés FR/AR manquantes dans des composants VIVANTS (labels undefined à l'exécution) : comptes direction (accountsDesc, accountName/Email/Password/Role, accountUpdated, createAccount, editAccount, deleteAccount(+Confirm), newPasswordOptional, noAccounts, passwordTooShort), tableau de bord directeur (directorOverview, directorDashboard), installation PWA (installedToast, installBannerDesc, installShort, iosInstallDesc, desktopInstallDesc, iosStep1-3, desktopStep1-2).
+- db-url.ts : fix narrowing TS (prédicat isUsablePostgres réduisait process.env.DATABASE_URL à never) → String(process.env.DATABASE_URL ?? ""), sémantique runtime identique.
+- next.config.ts : override optionnel NEXT_DIST_DIR pour builder dans un dossier séparé sans toucher au dev server.
+- Vérifications : tsc --noEmit → 0 erreur dans src/ (33 avant) ; lint propre ; scripts/test-build-fix.ts 11/11 (format cellule + 7 routes 200 XLSX valide FR/AR + garde 403) ; BUILD DE PRODUCTION RÉUSSI localement (NEXT_DIST_DIR=.next-verify bunx next build → ✓ Compiled successfully in 18.1s — l'étape exacte qui échouait sur Vercel), dossier de vérification supprimé, dev server intact.
+
+Stage Summary:
+- Build Vercel débloqué : les 6 erreurs Turbopack corrigées, code mort dangereux supprimé, composants directeur/PWA réparés (labels), src/ 100 % type-clean.
+- Utilisateur doit : pousser ce code sur GitHub (GestAbsence_V13) → Vercel redéploiera automatiquement. Rappel env Vercel : DATABASE_URL postgresql:// (Neon) obligatoire (cf. DEPLOIEMENT.md), prisma generate déjà dans l'install.
+- scripts/test-build-fix.ts conservé pour régresser les endpoints export/modèles.
+
+Complément Task 23 : commit final amendé 5f43644 (bruit tsconfig de la build de vérification annulé). Pas de remote git dans le sandbox → patch livré : download/0001-fix-build-vercel-*.patch (applicable sur f2d1a3e via git am, ou pousser simplement main).

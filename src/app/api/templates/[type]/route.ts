@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getCurrentUser, isSupervisor } from "@/lib/auth";
+import { getCurrentUser, isStaff } from "@/lib/auth";
 import * as XLSX from "xlsx";
 import { HOUR_SLOTS, DAY_NAMES, minutesToLabel } from "@/lib/schedule";
 import { buildServiceCellText } from "@/lib/excel";
@@ -101,7 +101,7 @@ function buildServices(lang: Lang) {
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ type: string }> }) {
   const user = await getCurrentUser(req);
-  if (!user || !isSupervisor(user)) {
+  if (!user || !isStaff(user.role)) {
     return new Response(JSON.stringify({ error: "Accès refusé" }), {
       status: 403,
       headers: { "Content-Type": "application/json" },

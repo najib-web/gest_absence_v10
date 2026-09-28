@@ -59,8 +59,11 @@ export function resolveDatabaseUrl(): string {
   // 4 — développement local sans Postgres configuré : SQLite (file:) accepté.
   // Ne change rien en production (Vercel/Neon) : les variables d'environnement
   // PostgreSQL sont toujours résolues avant ce repli.
-  if (process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith("file:")) {
-    return process.env.DATABASE_URL;
+  // (String(…) : évite le rétrécissement TS des prédicats de type ci-dessus,
+  //  qui réduirait process.env.DATABASE_URL à `undefined`/`never`.)
+  const localUrl = String(process.env.DATABASE_URL ?? "");
+  if (localUrl.startsWith("file:")) {
+    return localUrl;
   }
 
   // 5 — configuration manquante
