@@ -381,3 +381,19 @@ Work Log:
 Stage Summary:
 - Task 23 close : build production vert localement (exit 0). Le déploiement Vercel passera dès que le repo GitHub contiendra le commit 09e09cc (déjà le cas si l'utilisateur a poussé après la session du fix).
 - À retenir : toujours vérifier git log + worklog avant de croire un résumé de session (2 faux « en attente » détectés : Task 24 puis Task 23).
+
+---
+Task ID: 26
+Agent: Super Z (main agent)
+Task: « oui tester la création » — test end-to-end de la création d'un enseignant avec la matière Économie.
+
+Work Log:
+- Sandbox restauré rencontré : DB SQLite absente (login 500) → procédure standard : prisma db push + generate (schema.sqlite.prisma) + bun scripts/seed-demo-guide.ts + redémarrage serveur dev (HTTP 200).
+- Test navigateur (agent-browser) : login surveillant@edu.ma → onglet « Enseignants & Tables de Service » → bouton « Créer un Enseignant » → dropdown matières : 15 options dont « Économie — الاقتصاد » (entre Histoire-Géo et Informatique) → sélection + formulaire complet (Nadia El Amrani, نادية/العمراني, PPR 1254871, email n.elamrani@edu.ma) → Enregistrer.
+- Résultat : dialog fermé sans erreur, nouvelle ligne en tête de liste avec badge « Économie », noms arabes rendus RTL. Contrôle DB (findFirst ppr=1254871) : matiere="Économie", matiereAr="الاقتصاد" (auto-rempli), etablissementId scoping OK.
+- Capture preuve : download/verification/test-enseignant-economie.png. Astuce : findUnique sur Teacher exige id/userId (ppr n'est pas @unique) → utiliser findFirst.
+- L'enseignant de test reste dans la DB démo (supprimable via l'icône crayon de la ligne).
+
+Stage Summary:
+- Test end-to-end PASSANT : la matière Économie/الاقتصاد est opérationnelle dans la création d'enseignant (UI + persistance + traduction arabe automatique + scoping établissement).
+- Environnement démo restauré (ETAB-DEM, serveur dev sur localhost:3000).
