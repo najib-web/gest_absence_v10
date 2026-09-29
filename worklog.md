@@ -365,3 +365,19 @@ Work Log:
 
 Stage Summary:
 - Livré : matière « Économie / الاقتصاد » disponible dans le selecteur de matières du formulaire de création/édition d'enseignant, du dialog de service et de l'emploi du temps ; import XLSX enseignants enrichi automatiquement en arabe. Hot-reload dev server : effet immédiat sur localhost:3000.
+
+---
+Task ID: 23
+Agent: Super Z (main agent)
+Task: « lorsque je veut déployé la solution j avais ces erreurs » — corriger les 6 erreurs de build Vercel (buildServiceCellText ×2, isSupervisor ×4).
+
+Work Log:
+- Constat : les 6 erreurs avaient DÉJÀ été corrigées lors d'une session antérieure — commit 09e09cc « Fix build Vercel : buildServiceCellText implémenté, isSupervisor→isStaff, code mort supprimé (database/reset, admin-database, admin/accounts), 24 clés i18n FR/AR manquantes, fix TS db-url — src/ type-clean, build production validé ». Le résumé de session précédent était obsolète.
+- Vérifications : buildServiceCellText présent (src/lib/excel.ts:157, export utilisé par service-slots/export + templates/[type]) ; isSupervisor absent de tout src/ (les routes utilisent isStaff/isSuperAdmin selon la sémantique) ; depuis 09e09cc, seule modification src/ = ajout Économie (subjects.ts, Task 25).
+- bun run build local (Next.js 16.1.3 Turbopack) : EXIT_CODE=0, « Compiled successfully in 19.3s », 34 pages statiques générées, table de routes complète. Note : typescript.ignoreBuildErrors=true dans next.config (s'applique aussi à Vercel) ; les erreurs Vercel d'origine étaient des erreurs de bundling Turbopack (export inexistant), non concernées par ce réglage, et désormais impossibles puisque les exports existent. Typecheck strict src/ : 0 erreur (bunx tsc --noEmit, erreurs préexistantes limitées à examples/, scripts/, skills/).
+- Effet de bord : le build production a écrasé .next et interrompu le serveur dev → redémarré (HTTP 200 sur localhost:3000).
+- Git : working tree propre (ajout Économie capturé par auto-commit sandbox). AUCUN remote configuré dans le sandbox — la synchronisation vers github.com/najib-web/GestAbsence_V13 relève de l'utilisateur.
+
+Stage Summary:
+- Task 23 close : build production vert localement (exit 0). Le déploiement Vercel passera dès que le repo GitHub contiendra le commit 09e09cc (déjà le cas si l'utilisateur a poussé après la session du fix).
+- À retenir : toujours vérifier git log + worklog avant de croire un résumé de session (2 faux « en attente » détectés : Task 24 puis Task 23).
