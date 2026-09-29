@@ -350,3 +350,18 @@ Stage Summary:
 - Livré : download/formation/guide-utilisation-enseignant-fr-ar.docx (654 Ko) — miroir Word éditable du guide PDF bilingue, même contenu (7 chapitres + glossaire + clôture + 8 captures), numérotation 3 zones, TOC bilingue.
 - Scripts réutilisables : extract-guide-bilingue.py, guide-word-bilingue.js, fix-toc-rtl.py, guide-word-pagenum.py (désormais paramétrable).
 - Astuce : les entrées TOC placeholders doivent porter w:rtl + police cs pour un affichage arabe correct avant la première mise à jour des champs.
+
+---
+Task ID: 25
+Agent: Super Z (main agent)
+Task: « pour créer un enseignant il faut ajouter à la liste des matière l'économie » — ajouter la matière Économie à la liste des matières.
+
+Work Log:
+- Constat : liste centrale SUBJECTS dans src/lib/subjects.ts (14 matières FR/AR), source unique consommée par admin-teachers.tsx (TeacherDialog création/édition enseignant + ServiceDialog), admin-schedule.tsx, et l'import enseignants via subjectArFromFr.
+- Ajout de { fr: "Économie", ar: "الاقتصاد" } après Histoire-Géo (regroupement sciences sociales) → 15 matières.
+- Vérifié templates/[type]/route.ts : les occurrences « Mathématiques » ne sont que des lignes d'exemple, pas de liste à mettre en cohérence.
+- Typecheck bunx tsc --noEmit : 0 erreur dans src/ (erreurs préexistantes uniquement dans examples/, scripts/, skills/).
+- Test fonctionnel bun : SUBJECTS contient Économie/الاقتصاد ; subjectArFromFr('economie') → الاقتصاد (import XLSX auto-traduit même en minuscules/sans accents).
+
+Stage Summary:
+- Livré : matière « Économie / الاقتصاد » disponible dans le selecteur de matières du formulaire de création/édition d'enseignant, du dialog de service et de l'emploi du temps ; import XLSX enseignants enrichi automatiquement en arabe. Hot-reload dev server : effet immédiat sur localhost:3000.

@@ -9,6 +9,7 @@ export const SUBJECTS: { fr: string; ar: string }[] = [
   { fr: "Anglais", ar: "الإنجليزية" },
   { fr: "Philosophie", ar: "الفلسفة" },
   { fr: "Histoire-Géo", ar: "التاريخ والجغرافيا" },
+  { fr: "Économie", ar: "الاقتصاد" },
   { fr: "Informatique", ar: "المعلوميات" },
   { fr: "EPS", ar: "التربية البدنية" },
   { fr: "Mathématiques (TP)", ar: "الرياضيات (أعمال تطبيقية)" },
