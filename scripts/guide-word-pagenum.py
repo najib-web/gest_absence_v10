@@ -5,7 +5,7 @@
 """
 import re, sys, zipfile, shutil
 
-DOCX = "/home/z/my-project/download/guide-utilisation-enseignant-ar.docx"
+DOCX = sys.argv[1] if len(sys.argv) > 1 else "/home/z/my-project/download/guide-utilisation-enseignant-ar.docx"
 TMP = DOCX + ".tmp"
 
 with zipfile.ZipFile(DOCX, "r") as z:

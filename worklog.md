@@ -332,3 +332,21 @@ Work Log:
 
 Stage Summary:
 - Livrable unique : download/formation/ = guide PDF 10 pages (2,3 Mo) + source HTML éditable + fonts/ + images/ + README explicatif. Structure download/ épurée (ancien dossier guide supprimé).
+
+---
+Task ID: 24-ter
+Agent: Super Z (main agent)
+Task: « le guide en word » — version Word éditable du guide bilingue FR/AR dans download/formation/.
+
+Work Log:
+- Extraction du contenu : scripts/extract-guide-bilingue.py (bs4) → guide-bilingue-content.json (couverture, 7 chapitres : 14 duo, 4 features, 10 étapes, 8 figures, 4 callouts, 6 FAQ, 2 tableaux ; clôture : 4 cartes + citation + support). Générateur JS lit le JSON → zéro transcription manuelle.
+- scripts/guide-word-bilingue.js (route Create, recette R1 adaptée bilingue) : couverture verte MÉRS (titre FR à gauche + titre AR en miroir à droite, méta à barres latérales accent) ; corps en blocs empilés FR puis AR ; features/cartes récap en tableaux [num | FR | AR] (largeurs %, WPS-safe) ; callouts encadrés accent gauche ; FAQ en paragraphes combinés FR+Break+AR ; 8 captures PNG (ratio préservé via en-tête PNG) ; légendes « Figure N / صورة N ». Polices Office standard : Calibri (FR) + Traditional Arabic/Sakkal Majalla (AR, cs+rtl) — portables, sans embarquement.
+- 3 sections : couverture (marges 0, sans pied) / TOC (romains) / corps (arabes, repart à 1) ; TOC hyperlink 1-1 (8 entrées) + note d'actualisation bilingue.
+- Chaîne : add_toc_placeholders.py --auto (8 bookmarks) → guide-word-pagenum.py <docx> (paramétrisé par argv, rétro-compatible) → NOUVEAU scripts/fix-toc-rtl.py : scinde les placeholders TOC « FR\nAR » en run FR + <w:br/> + run AR (w:rtl + Sakkal Majalla) — corrige l'inversion LibreOffice de l'arabe avant mise à jour des champs Word.
+- Validations : postcheck.py 8/9 (0 erreur, 0 warning ; note informative polices AR standard Office) ; rendu LibreOffice 17 pages inspecté visuellement (couverture, TOC, corps, figures, tableaux, FAQ, clôture) ; 0 U+FFFD.
+- formation/README.md mis à jour (entrée DOCX + conseil « Mettre à jour les champs »).
+
+Stage Summary:
+- Livré : download/formation/guide-utilisation-enseignant-fr-ar.docx (654 Ko) — miroir Word éditable du guide PDF bilingue, même contenu (7 chapitres + glossaire + clôture + 8 captures), numérotation 3 zones, TOC bilingue.
+- Scripts réutilisables : extract-guide-bilingue.py, guide-word-bilingue.js, fix-toc-rtl.py, guide-word-pagenum.py (désormais paramétrable).
+- Astuce : les entrées TOC placeholders doivent porter w:rtl + police cs pour un affichage arabe correct avant la première mise à jour des champs.

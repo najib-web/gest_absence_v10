@@ -1,0 +1,504 @@
+{
+ "cover": {
+  "kicker": "Guide d'utilisation — دليل الاستخدام",
+  "titleFr": "Gestion des Absences Scolaires",
+  "titleAr": "منظومة تدبير الغيابات دليل استخدام الأستاذ(ة)",
+  "subFr": "Guide d'utilisation de l'enseignant · Édition bilingue",
+  "subAr": "",
+  "sumFr": "Ce guide accompagne l'enseignant(e) dans l'usage quotidien de la plateforme de gestion des absences :\n        se connecter, ouvrir la séance en cours, marquer les statuts de présence, justifier les absences et\n        enregistrer l'appel en quelques clics. Chaque explication est présentée en français et en arabe,\n        avec des captures d'écran réelles de l'application.",
+  "sumAr": "يرافق هذا الدليل الأستاذ(ة) في الاستعمال اليومي لمنظومة تدبير الغيابات:\n        الدخول إلى الحساب، فتح الحصة الجارية، تحديد حالات الحضور، تسبيب الغياب،\n        وحفظ التدوين بضع نقرات فقط. كل الشرح معروض بالفرنسية والعربية،\n        مع صور حقيقية من شاشات التطبيق.",
+  "pills": [],
+  "metaFrLbl": "Année scolaire",
+  "metaFrVal": "2026 / 2027",
+  "metaArLbl": "السنة الدراسية",
+  "metaArVal": "2026 / 2027",
+  "footFr": "Document pédagogique — usage interne",
+  "footAr": "وثيقة بيداغوجية — للاستعمال الداخلي"
+ },
+ "chapters": [
+  {
+   "tag": "CHAPITRE 1 · الفصل الأول",
+   "titleFr": "Découvrir le système",
+   "titleAr": "التعرّف على المنظومة",
+   "blocks": [
+    {
+     "type": "duo",
+     "fr": "La plateforme de gestion des absences est l'outil officiel de l'établissement pour enregistrer la présence des élèves, séance après séance. Elle remplace la feuille d'appel papier : chaque enseignant ouvre sa séance, marque les élèves présents, absents ou en retard, et enregistre. L'administration voit le résultat en temps réel et peut agir immédiatement en cas d'absence non justifiée. L'application fonctionne sur ordinateur, tablette et téléphone, et s'utilise aussi bien en français qu'en arabe.",
+     "ar": "منظومة تدبير الغيابات هي الأداة الرسمية للمؤسسة لتسجيل حضور التلاميذ، حصة بعد حصة. تحلّ محل ورقة الضمة الورقية: كل أستاذ(ة) يفتح حصته، ويحدّد التلاميذ الحاضرين والغائبين والمتأخرين، ثم يحفظ. وترى الإدارة النتيجة فورًا فتتمكن من التدخل في الحين إذا كان التغيب غير مبرر. يعمل التطبيق على الحاسوب والحاسوب اللوحي والهاتف، ويُستعمل بالفرنسية والعربية على حدّ سواء."
+    },
+    {
+     "type": "feature",
+     "num": "1",
+     "frT": "Appel simplifié",
+     "frR": "Marquez chaque élève حاضر (présent), غائب (absent) ou متأخر (en retard) en un clic, puis enregistrez.",
+     "arT": "تدوين مبسّط للحضور",
+     "arR": "حدّد كل تلميذ بضغطة واحدة: حاضر أو غائب أو متأخر، ثم احفظ."
+    },
+    {
+     "type": "feature",
+     "num": "2",
+     "frT": "Suivi instantané",
+     "frR": "La direction et la surveillance générale consultent les absences au fur et à mesure des appels, sans attendre la fin de la journée.",
+     "arT": "تتبع فوري",
+     "arR": "تطّلع الإدارة والحراسة العامة على الغياب أثناء تدوينه مباشرة، دون انتظار نهاية اليوم."
+    },
+    {
+     "type": "feature",
+     "num": "3",
+     "frT": "Rappel automatique",
+     "frR": "Si l'appel n'est pas enregistré quelques minutes après le début de la séance, une notification vous le rappelle.",
+     "arT": "تذكير آلي",
+     "arR": "إذا لم يُحفظ تدوين الغياب بعد دقائق من انطلاق الحصة، تصلكم إشعارًا بالتذكير بذلك."
+    },
+    {
+     "type": "feature",
+     "num": "4",
+     "frT": "Rapports officiels",
+     "frR": "Rédigez le rapport d'orientation directement dans l'application : document A4 avec l'en-tête officiel de l'établissement.",
+     "arT": "تقارير رسمية",
+     "arR": "حرّر تقرير التوجيه مباشرة داخل التطبيق: وثيقة A4 تحمل الترويسة الرسمية للمؤسسة."
+    },
+    {
+     "type": "duo",
+     "fr": "Trois profils utilisent la plateforme, chacun avec des droits précis. Le directeur supervise l'ensemble des données de l'établissement et gère les comptes. Le surveillant (harras) suit les absences en temps réel, appelle les parents et gère les dossiers d'orientation. L' enseignant est responsable de l'appel de ses propres séances : c'est le seul geste qu'on lui demande, mais c'est le plus important, car toute la chaîne de suivi en dépend.",
+     "ar": "ثلاثة أنماط من المستخدمين تعمل بالمنظومة، لكل منهم صلاحيات محددة. المدير(ة) يشرف على مجموع معطيات المؤسسة ويتدبر الحسابات. الحارس العام يتتبع الغياب لحظة بلحظة، ويتصل بأولياء الأمور، ويدير ملفات التوجيه. أما الأستاذ(ة) فهو المسؤول عن ضمّ تلاميذ حصصه هو، وهو الإجراء الوحيد المطلوب منه، لكنه الأهم لأن سلسلة التتبع كلها تعتمد عليه."
+    },
+    {
+     "type": "table",
+     "rows": [
+      [
+       {
+        "mixed": "Rôle — الدور"
+       },
+       {
+        "mixed": "Principales actions — أهم الإجراءات"
+       }
+      ],
+      [
+       {
+        "mixed": "المدير(ة) Directeur / Directrice"
+       },
+       {
+        "mixed": "إشراف شامل، تدبير الحسابات والمعطيات Supervision globale, gestion des comptes et des données."
+       }
+      ],
+      [
+       {
+        "mixed": "الحارس العام Surveillant"
+       },
+       {
+        "mixed": "تتبع الغياب، الاتصال بالأولياء، التوجيه Suivi des absences, appel des parents, dossiers d'orientation."
+       }
+      ],
+      [
+       {
+        "mixed": "الأستاذ(ة) Enseignant"
+       },
+       {
+        "mixed": "تدوين حضور حصصه، التسبيب، تقارير التوجيه Appel de ses séances, justification, rapports d'orientation."
+       }
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "tag": "CHAPITRE 2 · الفصل الثاني",
+   "titleFr": "Se connecter",
+   "titleAr": "الدخول إلى المنظومة",
+   "blocks": [
+    {
+     "type": "duo",
+     "fr": "L'accès se fait par navigateur, à l'adresse communiquée par l'administration, ou depuis l'application installée sur votre téléphone. Votre identifiant est votre email professionnel et votre mot de passe vous est remis par l'administration. Vous n'avez besoin d'aucune installation technique : un navigateur récent suffit.",
+     "ar": "يتم الولوج عبر المتصفح، على العنوان الذي توفره لكم الإدارة، أو من خلال التطبيق المثبَّت على هاتفكم. هويتكم هي بريدكم الإلكتروني المهني، وتُسلَّم لكم كلمة المرور من طرف الإدارة. لا تحتاجون إلى أي تثبيت تقني: يكفي متصفح حديث."
+    },
+    {
+     "type": "fig",
+     "src": "images/01-login.png",
+     "capFr": "Écran de connexion. Saisissez votre email professionnel et votre mot de passe, puis validez avec « دخول ».",
+     "capAr": "شاشة الدخول. أدخلوا بريدكم الإلكتروني المهني وكلمة المرور، ثم أكدوا بـ « دخول »."
+    },
+    {
+     "type": "steps",
+     "items": [
+      {
+       "num": "1",
+       "frT": "Ouvrez la plateforme.",
+       "frR": "Tapez l'adresse de l'établissement dans votre navigateur, ou ouvrez l'application installée sur le téléphone.",
+       "arT": "افتحوا المنظومة.",
+       "arR": "اكتبوا عنوان المؤسسة في المتصفح، أو افتحوا التطبيق المثبَّت على الهاتف."
+      },
+      {
+       "num": "2",
+       "frT": "Choisissez la langue.",
+       "frR": "Le bouton « العربية / Français » en haut de l'écran bascule toute l'interface dans la langue choisie.",
+       "arT": "اختاروا اللغة.",
+       "arR": "يبدّل زر « العربية / Français » أعلى الشاشة الواجهة كلها إلى اللغة المختارة."
+      },
+      {
+       "num": "3",
+       "frT": "Saisissez vos identifiants.",
+       "frR": "Email professionnel dans « البريد الإلكتروني », mot de passe dans « كلمة المرور ».",
+       "arT": "أدخلوا بيانات الدخول.",
+       "arR": "البريد الإلكتروني المهني في خانة « البريد الإلكتروني »، وكلمة المرور في خانة « كلمة المرور »."
+      },
+      {
+       "num": "4",
+       "frT": "Validez.",
+       "frR": "Cliquez sur « دخول » : la page d'accueil s'ouvre avec votre nom et les séances du jour.",
+       "arT": "أكدوا الدخول.",
+       "arR": "اضغطوا على « دخول »: تفتح الصفحة الرئيسية متضمنة اسمكم وحصص اليوم."
+      }
+     ]
+    },
+    {
+     "type": "callout",
+     "cls": "callout",
+     "title": "SÉCURITÉ · الأمان",
+     "fr": "Ne partagez jamais votre mot de passe et ne laissez pas votre session ouverte sur un poste partagé. Utilisez le bouton « تسجيل الخروج » en haut à droite pour vous déconnecter. En cas d'oubli ou de soupçon d'utilisation frauduleuse, prévenez immédiatement l'administration, qui réinitialise votre accès.",
+     "ar": "لا تشاركوا كلمة المرور مع أحد، ولا تتركوا جلستكم مفتوحة على حاسوب مشترك. استعملوا زر « تسجيل الخروج » أعلى اليمين للخروج. وعند نسيانها أو الاشتباه في استعمالها من طرف غيركم، بلّغوا الإدارة فورًا لتقوم بإعادة تنشيط حسابكم."
+    }
+   ]
+  },
+  {
+   "tag": "CHAPITRE 3 · الفصل الثالث",
+   "titleFr": "La page d'accueil",
+   "titleAr": "الواجهة الرئيسية",
+   "blocks": [
+    {
+     "type": "duo",
+     "fr": "Après la connexion, la vue d'ensemble affiche tout ce dont vous avez besoin pendant la journée. En haut à gauche, la carte « الحصة الجارية » (séance en cours) indique la classe, la matière et l'horaire du créneau actuel, avec le bouton « تدوين الغياب » pour démarrer l'appel. En dessous, des compteurs résument la journée : votre service, les séances du jour, les présences enregistrées et les dossiers d'orientation en attente.",
+     "ar": "بعد الدخول، تعرض « نظرة عامة » كل ما تحتاجونه خلال اليوم. في الأعلى، تُظهر بطاقة « الحصة الجارية » القسم والمادة وتوقيت الحصة الحالية، مع زر « تدوين الغياب » لبدء التدوين. وتحت هذه البطاقة تلخّص العدّادات يومكم: جدول الخدمة، حصص اليوم، الحضور المسجَّل، وملفات التوجيه قيد الانتظار."
+    },
+    {
+     "type": "fig",
+     "src": "images/03-accueil.png",
+     "capFr": "Vue d'ensemble. La carte de la séance en cours (08:00 - 10:00) avec le bouton d'appel, et les compteurs du jour en dessous.",
+     "capAr": "نظرة عامة. بطاقة الحصة الجارية (08:00 - 10:00) مع زر التدوين، وتحتها عدّادات اليوم."
+    },
+    {
+     "type": "duo",
+     "fr": "Le menu latéral regroupe les six espaces de travail : نظرة عامة (vue d'ensemble), جدول توقيتي (mon emploi du temps hebdomadaire), حصصي (mes séances avec historique), التلاميذ الموجهون (élèves orientés), سجل الغيابات (historique des absences) et ملفي وتوقيعي (profil et signature pour les rapports). Si l'appel n'est pas enregistré peu après le début de la séance, une notification sonore et visuelle apparaît en bas de l'écran.",
+     "ar": "يجمع القائمة الجانبية ستة فضاءات للعمل: نظرة عامة ، و جدول توقيتي (الأسبوعي)، و حصصي (قائمة الحصص مع الأرشيف)، و التلاميذ الموجهون ، و سجل الغيابات ، و ملفي وتوقيعي (لتقرير التوجيه). وإذا لم يُحفظ التدوين بعد بداية الحصة بدقائق، يظهر إشعار صوتي ومرئي أسفل الشاشة."
+    },
+    {
+     "type": "fig",
+     "src": "images/02-rappel.png",
+     "capFr": "Rappel automatique. Quelques minutes après le début de la séance sans appel enregistré, une notification rappelle de faire l'appel.",
+     "capAr": "التذكير الآلي. بعد دقائق من بداية الحصة دون تدوين محفوظ، يذكّركم إشعار بضرورة تدوين الغياب."
+    }
+   ]
+  },
+  {
+   "tag": "CHAPITRE 4 · الفصل الرابع",
+   "titleFr": "Mon emploi du temps et mes séances",
+   "titleAr": "جدول توقيتي وحصصي",
+   "blocks": [
+    {
+     "type": "duo",
+     "fr": "L'espace « جدول توقيتي » présente votre grille hebdomadaire, du lundi au samedi, de 08:00 à 18:00. Chaque case colorée correspond à une séance avec sa classe et sa matière. Le jour actuel est signalé, et le créneau en cours est mis en évidence : vous repérez en un coup d'œil où vous devez être et quelle classe vous y attend.",
+     "ar": "يعرض فضاء « جدول توقيتي » خطتكم الأسبوعية من الاثنين إلى السبت، من الثامنة إلى الثامنة عشرة (08:00 - 18:00). كل خانة ملونة تقابل حصة باسم القسم والمادة. ويُشَر إلى اليوم الحالي، مع إبراز الحصة الجارية: فتعرفون بنظرة واحدة أين يجب أن تكونوا وأي قسم ينتظركم."
+    },
+    {
+     "type": "fig",
+     "src": "images/08-emploi-du-temps.png",
+     "capFr": "Emploi du temps hebdomadaire. La colonne du jour est surlignée et le créneau en cours est encadré, avec l'indication « الآن ».",
+     "capAr": "الجدول الأسبوعي. يُظلَّل عمود اليوم الحالي وتُحيط إطارًا الحصة الجارية، مع إشارة « الآن »."
+    },
+    {
+     "type": "duo",
+     "fr": "L'espace « حصصي » liste vos séances passées et à venir, avec la date, la classe, la matière et le nombre d'absences enregistrées. Pour une séance déjà traitée, le bouton « تدوين الغياب » permet de rouvrir la feuille d'appel et de corriger un statut si nécessaire. C'est également d'ici que vous ouvrez une séance du jour si vous avez quitté la page d'accueil.",
+     "ar": "يعرض فضاء « حصصي » حصصكم السابقة والقادمة، مع التاريخ والقسم والمادة وعدد الغياب المسجَّل. ويتيح زر « تدوين الغياب »، في الحصة المعالجة سلفًا، إعادة فتح ورقة التدوين لتصحيح حالة عند الاقتضاء. ومن هنا أيضًا تفتحون حصة اليوم إذا غادرتم الصفحة الرئيسية."
+    },
+    {
+     "type": "fig",
+     "src": "images/07-mes-seances.png",
+     "capFr": "Mes séances. Chaque ligne affiche la date, la classe, la matière et les absences comptabilisées ; le bouton rouvre l'appel.",
+     "capAr": "حصصي. يعرض كل سطر التاريخ والقسم والمادة والغياب المُحصى؛ ويعيد الزر فتح ورقة التدوين."
+    }
+   ]
+  },
+  {
+   "tag": "CHAPITRE 5 · الفصل الخامس",
+   "titleFr": "Saisir les absences, étape par étape",
+   "titleAr": "تدوين الغياب خطوة بخطوة",
+   "blocks": [
+    {
+     "type": "duo",
+     "fr": "L'appel est le geste central de la journée : il prend moins d'une minute avec la plateforme. Ouvrez la séance, parcourez la liste des élèves, marquez les statuts et enregistrez. Par défaut, tous les élèves sont considérés comme présents : vous ne touchez qu'aux cas particuliers. Les trois statuts possibles sont حاضر (présent, ✓ vert), غائب (absent, X rouge) et متأخر (en retard, sablier orange).",
+     "ar": "تدوين الغياب هو الإجراء المحوري في اليوم، ولا يستغرق مع المنظومة دقيقة واحدة. افتحوا الحصة، وتصفّحوا قائمة التلاميذ، وحدّدوا الحالات ثم احفظوا. وبمبدأ العامة يُعتبر كل التلاميذ حاضرين: فلا تعدّلون إلا الحالات الخاصة. والحالات الثلاث الممكنة هي: حاضر (علامة ✓ خضراء)، و غائب (علامة X حمراء)، و متأخر (رمز الساعة البرتقالية)."
+    },
+    {
+     "type": "steps",
+     "items": [
+      {
+       "num": "1",
+       "frT": "Ouvrez la séance.",
+       "frR": "Depuis la carte « الحصة الجارية » sur la page d'accueil, cliquez sur « تدوين الغياب ». La feuille d'appel s'ouvre avec la classe, la matière, la date et l'heure.",
+       "arT": "افتحوا الحصة.",
+       "arR": "من بطاقة « الحصة الجارية » في الصفحة الرئيسية، اضغطوا على « تدوين الغياب ». فتُفتح ورقة التدوين متضمنة القسم والمادة والتاريخ والساعة."
+      },
+      {
+       "num": "2",
+       "frT": "Vérifiez la liste.",
+       "frR": "Chaque ligne affiche le numéro, le « الرمز المساري » (Code Massar) et le nom complet de l'élève. Une zone de recherche permet de retrouver un élève rapidement dans les classes nombreuses.",
+       "arT": "تحققوا من القائمة.",
+       "arR": "يعرض كل سطر رقم التلميذ و« الرمز المساري » واسمه الكامل. وتتيح خانة البحث العثور على تلميذ بسرعة في الأقسام المكتظة."
+      },
+      {
+       "num": "3",
+       "frT": "Marquez les statuts.",
+       "frR": "Pour chaque élève concerné, cliquez sur غائب ou متأخر ; le compteur en haut de l'écran se met à jour instantanément (حاضر / غائب / متأخر). Un clic sur حاضر annule le statut.",
+       "arT": "حدّدوا الحالات.",
+       "arR": "لكل تلميذ معني، اضغطوا على غائب أو متأخر؛ فيتحدّث العدّاد أعلى الشاشة فورًا (حاضر / غائب / متأخر). والضغط على حاضر يُلغي الحالة المحددة."
+      }
+     ]
+    },
+    {
+     "type": "fig",
+     "src": "images/04-appel.png",
+     "capFr": "Feuille d'appel. Deux élèves marqués غائب et un élève متأخر : les compteurs (5 حاضر / 2 غائب / 1 متأخر) reflètent la situation en temps réel.",
+     "capAr": "ورقة التدوين. تلميذان بحالة غائب وتلميذ بحالة متأخر: تعكس العدّادات (5 حاضر / 2 غائب / 1 متأخر) الوضعية لحظة بلحظة."
+    },
+    {
+     "type": "steps",
+     "items": [
+      {
+       "num": "4",
+       "frT": "Justifiez l'absence.",
+       "frR": "Cliquez sur le bouton « + » de la colonne « السبب » : une fenêtre s'ouvre pour saisir le motif (par exemple « مرض مع شهادة طبية »). Enregistrez avec « حفظ ».",
+       "arT": "سبّبوا الغياب.",
+       "arR": "اضغطوا على زر « + » في عمود « السبب »: تُفتح نافذة لإدخال المبرر (مثل: « مرض مع شهادة طبية »). ثم احفظوا بـ « حفظ »."
+      }
+     ]
+    },
+    {
+     "type": "fig",
+     "src": "images/05-justification.png",
+     "capFr": "Justification. La fenêtre « السبب » permet d'attacher le motif de l'absence directement pendant l'appel.",
+     "capAr": "التسبيب. تتيح نافذة « السبب » إرفاق مبرر الغياب مباشرة أثناء التدوين."
+    },
+    {
+     "type": "steps",
+     "items": [
+      {
+       "num": "5",
+       "frT": "Rédigez un rapport d'orientation (si nécessaire).",
+       "frR": "Le bouton « كتابة تقرير توجيه » s'active pour un élève cumulant les absences : la fenêtre de saisie propose un rapport A4 officiel, avec palette de mise en forme et votre signature enregistrée.",
+       "arT": "حرّروا تقرير التوجيه (عند الاقتضاء).",
+       "arR": "يُنشَّط زر « كتابة تقرير توجيه » للتلميذ المتكرر غيابه: تفتح نافذة تحرير تقرير رسمي بحجم A4، مع لوحة تنسيق وتوقيعكم المسجَّل."
+      },
+      {
+       "num": "6",
+       "frT": "Enregistrez l'appel.",
+       "frR": "Vérifiez une dernière fois les compteurs, puis cliquez sur « حفظ ». La confirmation « تم الحفظ بنجاح » apparaît : la surveillance générale voit immédiatement les statuts enregistrés.",
+       "arT": "احفظوا التدوين.",
+       "arR": "تحققوا مرة أخيرة من العدّادات، ثم اضغطوا على « حفظ ». تظهر رسالة التأكيد « تم الحفظ بنجاح »: فترى الحراسة العامة الحالات المسجَّلة في الحين."
+      }
+     ]
+    },
+    {
+     "type": "fig",
+     "src": "images/06-confirmation.png",
+     "capFr": "Enregistrement confirmé. Le message « تم الحفظ بنجاح — 3 غائب/متأخر، 5 حاضر » confirme la sauvegarde ; les statuts restent modifiables en rouvrant la séance.",
+     "capAr": "تأكيد الحفظ. تؤكد رسالة « تم الحفظ بنجاح — 3 غائب/متأخر، 5 حاضر » تسجيل البيانات؛ وتبقى الحالات قابلة للتعديل بإعادة فتح الحصة."
+    },
+    {
+     "type": "callout",
+     "cls": "callout",
+     "title": "CORRECTION APRÈS ENREGISTREMENT · التصحيح بعد الحفظ",
+     "fr": "Une erreur de statut n'est pas définitive : rouvrez la séance depuis l'espace « حصصي », corrigez la ligne concernée puis enregistrez à nouveau avec « حفظ ». L'historique conserve la trace de l'appel, ce qui protège l'enseignant en cas de contestation ultérieure.",
+     "ar": "الخطأ في الحالة ليس نهائيًا: أعدوا فتح الحصة من فضاء « حصصي »، وصحّحوا السطر المعني، ثم احفظوا مرة أخرى بـ « حفظ ». ويحفظ الأرشيف أثر التدوين، ما يحمي الأستاذ(ة) عند أي نزاع لاحق."
+    }
+   ]
+  },
+  {
+   "tag": "CHAPITRE 6 · الفصل السادس",
+   "titleFr": "Le rappel automatique",
+   "titleAr": "التذكير الآلي",
+   "blocks": [
+    {
+     "type": "duo",
+     "fr": "Quelques minutes après le début d'une séance, si l'appel n'a toujours pas été enregistré, la plateforme envoie une notification sonore et visuelle rappelant la séance concernée, sa classe et son horaire. Ce rappel disparaît dès que l'appel est enregistré. Il n'est pas une sanction : c'est une sécurité qui protège l'élève absent, car chaque minute comptée à partir de l'appel permet à la surveillance d'agir vite (appel du parent, recherche de l'élève).",
+     "ar": "بعد دقائق من انطلاق الحصة، إذا لم يُحفظ التدوين بعد، ترسل المنظومة إشعارًا صوتيًا ومرئيًا يذكّر بالحصة المعنية وقسمها وتوقيتها. ويختفي هذا التذكير بمجرد حفظ التدوين. وليس التذكير عقوبة، بل هو شبكة أمان لحماية التلميذ الغائب، لأن كل دقيقة تُحسب منذ التدوين تتيح للحراسة العامة التدخل بسرعة (اتصال بولي الأمر، البحث عن التلميذ)."
+    },
+    {
+     "type": "callout",
+     "cls": "callout",
+     "title": "BONNES PRATIQUES · الممارسات الفضلى",
+     "fr": "Faites l'appel dès la première minute de chaque séance, même lorsque tout le monde est présent : un appel enregistré vaut mieux qu'une absence de signalement. Si vous êtes empêché (retard, remplacement, sortie pédagogique), prévenez la surveillance générale : l'appel peut être saisi par le surveillant, et la séance reste traçable. En cas de séance sans élèves (classe en sortie, examen), signalez-le également à la surveillance.",
+     "ar": "أدّوا الغياب في الدقيقة الأولى من كل حصة، حتى لو كان الجميع حاضرًا: فتدوينٌ محفوظ خيرٌ من غياب بلاغ. وإذا تُمكنكم عن الحصة (تأخر، إحلال، رحلة بيداغوجية)، بلّغوا الحراسة العامة: يمكن للحارس العام أن يقوم بالتدوين، وتبقى الحصة متتبَّعة. وعند حصة بدون تلاميذ (خروج القسم، الامتحانات)، بلّغوها كذلك."
+    }
+   ]
+  },
+  {
+   "tag": "CHAPITRE 7 · الفصل السابع",
+   "titleFr": "Questions fréquentes et conseils",
+   "titleAr": "أسئلة متكررة ونصائح",
+   "blocks": [
+    {
+     "type": "faq",
+     "qFr": "1. J'ai oublié mon mot de passe, que faire ?",
+     "qAr": "1. نسيتُ كلمة المرور، ماذا أفعل؟",
+     "aFr": "Adressez-vous à l'administration de l'établissement (direction ou surveillance générale). Elle vérifie votre identité et réinitialise votre accès en quelques minutes. Évitez les tentatives répétées : le compte reste accessible après réinitialisation par l'administration.",
+     "aAr": "توجّهوا إلى إدارة المؤسسة (المديرية أو الحراسة العامة). تتحقق من هويتكم وتعيد تنشيط حسابكم في دقائق. تجنّبوا المحاولات المتكررة: يبقى الحساب متاحًا بعد إعادة التنشيط من طرف الإدارة."
+    },
+    {
+     "type": "faq",
+     "qFr": "2. Peut-on utiliser le téléphone ?",
+     "qAr": "2. هل يمكن استعمال الهاتف؟",
+     "aFr": "Oui. La plateforme s'adapte à tous les écrans et peut être installée comme une application sur le téléphone (bouton « تثبيت » proposé par le navigateur). L'appel depuis le téléphone fonctionne exactement comme sur l'ordinateur, ce qui est pratique dans les salles sans poste fixe.",
+     "aAr": "نعم. تتكيف المنظومة مع كل الشاشات ويمكن تثبيتها كتطبيق على الهاتف (عبر زر « تثبيت » الذي يقترحه المتصفح). ويعمل التدوين من الهاتف تمامًا كما على الحاسوب، وهو أمر عملي في القاعات الخالية من الحواسيب."
+    },
+    {
+     "type": "faq",
+     "qFr": "3. Je me suis trompé de statut après l'enregistrement.",
+     "qAr": "3. أخطأتُ في تحديد الحالة بعد الحفظ.",
+     "aFr": "Rouvrez la séance depuis « حصصي », modifiez le statut de l'élève concerné puis enregistrez à nouveau. La correction écrase proprement l'ancienne valeur et la surveillance voit la version à jour. Mieux vaut corriger dans l'heure que laisser une erreur remonter aux parents.",
+     "aAr": "أعيدوا فتح الحصة من « حصصي »، وعدّلوا حالة التلميذ المعني ثم احفظوا مجددًا. تحذف التصحيحة القيمة القديمة بشكل سليم وترى الحراسة العامة النسخة المحدَّثة. والتصحيح في نفس اليوم أفضل من ترك خطأ يصل إلى أولياء الأمور."
+    },
+    {
+     "type": "faq",
+     "qFr": "4. À quoi sert la colonne « السبب » ?",
+     "qAr": "4. فيمَ يُفيد عمود « السبب »؟",
+     "aFr": "Ce bouton « + » permet d'attacher le motif d'une absence (maladie, autorisation, convocation...) au moment de l'appel. Une absence justifiée facilite ensuite le travail de la surveillance et évite un appel inutile au parent. Saisissez un motif court et factuel, par exemple « مرض مع شهادة طبية ».",
+     "aAr": "يتيح هذا الزر « + » إرفاق مبرر الغياب (مرض، إذن، استدعاء...) في أثناء التدوين. فالغياب المبرَّر يُسهّل بعد ذلك عمل الحراسة العامة ويجنبها اتصالًا غير ضروري بولي الأمر. أدخلوا مبررًا قصيرًا وواقعيًا، مثل « مرض مع شهادة طبية »."
+    },
+    {
+     "type": "faq",
+     "qFr": "5. Quand rédiger un rapport d'orientation ?",
+     "qAr": "5. متى نحرّر تقرير التوجيه؟",
+     "aFr": "Le bouton « كتابة تقرير توجيه » s'active pour les élèves cumulant les absences non justifiées. Le rapport se rédige directement dans l'application : document A4 avec l'en-tête officiel (Académie, Direction provinciale, établissement), palette de mise en forme et votre signature. Il est ensuite visible par la direction et la surveillance, et alimente le dossier de l'élève.",
+     "aAr": "يُنشَّط زر « كتابة تقرير توجيه » للتلاميذ المتراكم عندهم الغياب غير المبرَّر. ويُحرَّر التقرير مباشرة داخل التطبيق: وثيقة A4 بالترويسة الرسمية (الأكاديمية، المديرية الإقليمية، المؤسسة)، مع لوحة تنسيق وتوقيعكم. ويطّلع عليه بعد ذلك المدير(ة) والحراسة العامة، ويُدرَج في ملف التلميذ(ة)."
+    },
+    {
+     "type": "faq",
+     "qFr": "6. Quelles informations sur les élèves l'application affiche-t-elle ?",
+     "qAr": "6. ما معطيات التلاميذ التي تعرضها المنظومة؟",
+     "aFr": "L'enseignant voit uniquement ce dont l'appel a besoin : le numéro, le Code Massar et le nom complet de l'élève. Les coordonnées des parents et le dossier complet restent du ressort de la surveillance et de la direction. Chaque donnée est limitée à l'établissement auquel vous êtes rattaché : vous ne voyez que vos classes et vos séances.",
+     "aAr": "لا يرى الأستاذ(ة) إلا ما يحتاجه التدوين: رقم التلميذ ورمزه المساري واسمه الكامل. أما معلومات الاتصال بالأولياء والملف الكامل فتبقى من اختصاص الحراسة العامة والإدارة. وكل معطى محصور في المؤسسة التي تنتمون إليها: لا ترون إلا أقسامكم وحصصكم."
+    },
+    {
+     "type": "callout",
+     "cls": "callout",
+     "title": "LES CONSEILS D'OR · النصائح الذهبية",
+     "fr": "1. Faites l'appel au début de chaque séance, avant de commencer le cours. 2. Justifiez les absences au moment de l'appel, quand le souvenir est frais. 3. Vérifiez les compteurs حاضر / غائب / متأخر avant chaque « حفظ ». 4. En cas de doute ou d'incident, contactez la surveillance générale sans attendre : elle voit vos séances en temps réel et peut intervenir immédiatement.",
+     "ar": "1. أدّوا الغياب في بداية كل حصة، قبل الشروع في الدرس. 2. سبّبوا الغياب وقت التدوين، حين يكون المعلوم حاضرًا في الذهن. 3. تحققوا من العدّادات حاضر / غائب / متأخر قبل كل « حفظ ». 4. عند أي شك أو واقعة، تواصلوا مع الحراسة العامة دون تأخير: فهي ترى حصصكم لحظة بلحظة وتستطيع التدخل فورًا."
+    },
+    {
+     "type": "duo",
+     "fr": "Pour terminer, ce petit glossaire rassemble les termes utilisés dans l'application et dans ce guide, en français et en arabe. Gardez-le sous la main lors de vos premiers appels : il vous aidera à faire le lien entre les libellés affichés à l'écran et le vocabulaire de l'établissement.",
+     "ar": "وختامًا، يجمع هذا المعجم الصغير المصطلحات المستعملة في التطبيق وفي هذا الدليل، بالفرنسية والعربية. احتفظوا به قربكم في تدويناتكم الأولى: سيساعدكم على الربط بين العبارات المعروضة على الشاشة والمصطلحات المتداولة في المؤسسة."
+    },
+    {
+     "type": "table",
+     "rows": [
+      [
+       {
+        "mixed": "Terme — المصطلح"
+       },
+       {
+        "mixed": "Signification — المعنى"
+       }
+      ],
+      [
+       {
+        "mixed": "تدوين الغياب Appel / enregistrement des absences"
+       },
+       {
+        "mixed": "تحديد حالات حضور التلاميذ في الحصة ثم حفظها Marquer puis enregistrer les statuts de présence de la séance."
+       }
+      ],
+      [
+       {
+        "mixed": "الحصة الجارية Séance en cours"
+       },
+       {
+        "mixed": "الحصة المعروضة على الصفحة الرئيسية أثناء توقيتها La séance affichée sur la page d'accueil pendant son créneau."
+       }
+      ],
+      [
+       {
+        "mixed": "حصصي Mes séances"
+       },
+       {
+        "mixed": "قائمة الحصص مع التواريخ وإمكانية إعادة الفتح والتصحيح Liste des séances ; permet de rouvrir et corriger un appel."
+       }
+      ],
+      [
+       {
+        "mixed": "السبب Motif de l'absence"
+       },
+       {
+        "mixed": "مبرر الغياب (مرض، إذن...) يُضاف عبر زر (+) Justification saisie via le bouton « + » de la feuille d'appel."
+       }
+      ],
+      [
+       {
+        "mixed": "تقرير التوجيه Rapport d'orientation"
+       },
+       {
+        "mixed": "وثيقة A4 رسمية للتلميذ المتكرر غيابه Document A4 officiel pour un élève cumulant les absences."
+       }
+      ],
+      [
+       {
+        "mixed": "الحراسة العامة Surveillance générale"
+       },
+       {
+        "mixed": "تتبع الغياب لحظيًا والاتصال بالأولياء عند الاقتضاء Suit les absences en temps réel et contacte les parents si besoin."
+       }
+      ],
+      [
+       {
+        "mixed": "الرمز المساري Code Massar"
+       },
+       {
+        "mixed": "المعرّف الوطني للتلميذ(ة) المعروض في ورقة التدوين Identifiant national de l'élève affiché sur la feuille d'appel."
+       }
+      ]
+     ]
+    }
+   ]
+  }
+ ],
+ "ending": {
+  "titleFr": "L'essentiel en 4 étapes",
+  "titleAr": "الخلاصة في 4 خطوات",
+  "sub": "Résumé du parcours quotidien de l'enseignant sur la plateforme — ملخص المسار اليومي للأستاذ(ة) داخل المنظومة",
+  "quote": "« Un appel fait dès la première minute, c'est un élève retrouvé plus vite. » « تدوينُ الغياب في الدقيقة الأولى يعني العثور على التلميذ الغائب بسرعة أكبر. »",
+  "support": "Besoin d'aide ? Pour toute question technique (mot de passe oublié, erreur de statut, dysfonctionnement), contactez l'administration de votre établissement : direction ou surveillance générale. Ce guide reste disponible auprès de l'administration. هل تحتاجون إلى مساعدة؟ لأي استفسار تقني (نسيان كلمة المرور، خطأ في الحالة، خلل تقني)، تواصلوا مع إدارة مؤسستكم: المدير(ة) أو الحراسة العامة. ويبقى هذا الدليل متاحًا لدى الإدارة.",
+  "footFr": "",
+  "footAr": "",
+  "cards": [
+   {
+    "n": "1",
+    "frT": "Se connecter",
+    "arT": "الدخول إلى المنظومة",
+    "frD": "Ouvrez l'adresse de la plateforme, saisissez votre email et votre mot de passe, puis validez par « دخول ».",
+    "arD": "افتح عنوان المنظومة، أدخل بريدك الإلكتروني وكلمة المرور، ثم اضغط « دخول »."
+   },
+   {
+    "n": "2",
+    "frT": "Ouvrir la séance",
+    "arT": "فتح الحصة",
+    "frD": "Depuis la carte « الحصة الجارية » de la page d'accueil, cliquez sur « تدوين الغياب ».",
+    "arD": "من بطاقة « الحصة الجارية » في الصفحة الرئيسية، اضغط على « تدوين الغياب »."
+   },
+   {
+    "n": "3",
+    "frT": "Marquer les statuts",
+    "arT": "تحديد الحالات",
+    "frD": "Pour chaque élève : حاضر (présent), غائب (absent) ou متأخر (en retard), et ajoutez le motif (+) si besoin.",
+    "arD": "لكل تلميذ: حاضر أو غائب أو متأخر، وأضف السبب (+) عند الاقتضاء."
+   },
+   {
+    "n": "4",
+    "frT": "Enregistrer",
+    "arT": "الحفظ",
+    "frD": "Vérifiez les compteurs puis cliquez sur « حفظ » ; la confirmation apparaît et la surveillance voit le résultat immédiatement.",
+    "arD": "تحقق من العدّادات ثم اضغط « حفظ »؛ تظهر رسالة التأكيد وترى الحراسة العامة النتيجة فورًا."
+   }
+  ]
+ }
+}
